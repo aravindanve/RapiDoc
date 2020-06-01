@@ -59,27 +59,20 @@
       render-style = "read"
       show-header	 = "false"
       show-info	= "false"
-      allow-search="false"
-      allow-authentication = "true"
+      allow-authentication = "false"
       allow-server-selection = "false"
-      nav-bg-color = "#563dba"
+      nav-bg-color = "#333f54"
       nav-text-color="#e6e1fc"
-
+      primary-color ="#E63946"
+      nav-accent-color="#E63946"
     > 
-    <div>
-      <div  class="banner" style="max-height:400px; overflow:hidden;">
-        <h1> Hello  </h1>
-        <svg class="waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
-          <defs>
-            <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
-          </defs>
-          <g class="parallax">
-            <use xlink:href="#gentle-wave" x="48" y="0" fill="rgba(255,255,255,0.7" />
-            <use xlink:href="#gentle-wave" x="48" y="3" fill="rgba(255,255,255,0.5)" />
-            <use xlink:href="#gentle-wave" x="48" y="7" fill="#fff" />
-          </g>
-        </svg>
+    <div style="padding:16px; width:calc(100% - 70px); height:300px; background-image: url('../images/pets.png'); background-size: contain; background-repeat: no-repeat; background-position:bottom right; ">
+      <div style="display:flex; margin-top:-8px">
+        <img src="../images/petlogo.jpg" style="width:120px; height:auto"> 
+        <div style="flex:1"></div>
+        <div style="font-size:13px; color:#E63946; cursor: pointer;"> About &nbsp;|&nbsp; Help &nbsp;|&nbsp; Contact Us</div>
       </div>
+      <div style="font-weight:200; font-size:24px"> API Document as beautiful as your pet !!! </div>
     </div>
     </rapi-doc>
   </body>
