@@ -1,7 +1,7 @@
 {
   "name": "@aravindanve/rapidoc",
   "private": false,
-  "version": "8.2.0-alt.0",
+  "version": "8.2.0-alt.1",
   "description": "RapiDoc - Open API spec viewer with built in console",
   "author": "Mrinmoy Majumdar <mrin9@yahoo.com>",
   "repository": {
