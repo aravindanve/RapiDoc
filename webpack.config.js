@@ -20,7 +20,11 @@ const commonPlugins = [
   new webpack.optimize.LimitChunkCountPlugin({
     maxChunks: 1,
   }),
-  new HtmlWebpackPlugin({ template: 'index.html' }),
+  new HtmlWebpackPlugin({
+    template: process.env.NODE_ENV === 'production'
+      ? 'index.html'
+      : 'index-alt.html',
+  }),
   new CompressionPlugin(),
   new FileManagerPlugin({
     onEnd: {
