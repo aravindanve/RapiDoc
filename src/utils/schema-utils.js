@@ -28,6 +28,7 @@ export function getTypeInfo(schema) {
     allowedValues: '',
     arrayType: '',
     html: '',
+    nullable: schema.nullable ? 'nullable' : '', // @aravindanve
   };
 
   if (info.type === '{recursive}') {
@@ -76,7 +77,7 @@ export function getTypeInfo(schema) {
       info.constrain = `max ${schema.maxLength} chars`;
     }
   }
-  info.html = `${info.type}~|~${info.readOrWriteOnly} ${info.deprecated}~|~${info.constrain}~|~${info.default}~|~${info.allowedValues}~|~${info.pattern}~|~${info.description}`;
+  info.html = `${info.type}~|~${info.readOrWriteOnly} ${info.deprecated}~|~${info.constrain}~|~${info.default}~|~${info.allowedValues}~|~${info.pattern}~|~${info.description}~|~${info.nullable}`; // @aravindanve
   return info;
 }
 
@@ -336,6 +337,7 @@ export function schemaInObjectNotation(schema, obj, level = 0, suffix = '') {
     if (schema.type === 'object' || schema.properties) {
       obj['::description'] = schema.description ? schema.description : '';
       obj['::type'] = 'object';
+      obj['::nullable'] = !!schema.nullable; // @aravindanve
       for (const key in schema.properties) {
         if (schema.required && schema.required.includes(key)) {
           obj[`${key}*`] = schemaInObjectNotation(schema.properties[key], {}, (level + 1));
@@ -364,9 +366,11 @@ export function schemaInObjectNotation(schema, obj, level = 0, suffix = '') {
     });
     obj[(schema.anyOf ? `::ANY~OF ${suffix}` : `::ONE~OF ${suffix}`)] = objWithAnyOfProps;
     obj['::type'] = 'xxx-of';
+    obj['::nullable'] = !!schema.nullable; // @aravindanve
   } else if (schema.type === 'object' || schema.properties) {
     obj['::description'] = schema.description ? schema.description : '';
     obj['::type'] = 'object';
+    obj['::nullable'] = !!schema.nullable; // @aravindanve
     for (const key in schema.properties) {
       if (schema.required && schema.required.includes(key)) {
         obj[`${key}*`] = schemaInObjectNotation(schema.properties[key], {}, (level + 1));
@@ -380,6 +384,7 @@ export function schemaInObjectNotation(schema, obj, level = 0, suffix = '') {
   } else if (schema.items) { // If Array
     obj['::description'] = schema.description ? schema.description : '';
     obj['::type'] = 'array';
+    obj['::nullable'] = !!schema.nullable; // @aravindanve
     obj['::props'] = schemaInObjectNotation(schema.items, {}, (level + 1));
   } else {
     const typeObj = getTypeInfo(schema);

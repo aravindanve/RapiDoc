@@ -126,20 +126,23 @@ export default class SchemaTree extends LitElement {
     let openBracket = '';
     let closeBracket = '';
     if (data['::type'] === 'object') {
+      const orNull = data['::nullable'] ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+      const orNullClass = data['::nullable'] ? ' or-null' : ''; // @aravindanve
+
       if (prevDataType === 'array') {
         if (level < this.schemaExpandLevel) {
-          openBracket = html`<span class="open-bracket array" @click="${this.toggleObjectExpand}">[{</span>`;
+          openBracket = html`<span class="open-bracket array${orNullClass}" @click="${this.toggleObjectExpand}">[{</span>`; // @aravindanve
         } else {
-          openBracket = html`<span class="open-bracket array" @click="${this.toggleObjectExpand}">[{...}]</span>`;
+          openBracket = html`<span class="open-bracket array${orNullClass}" @click="${this.toggleObjectExpand}">[{...}]${orNull}</span>`; // @aravindanve
         }
-        closeBracket = '}]';
+        closeBracket = html`}]${orNull}`; // @aravindanve
       } else {
         if (level < this.schemaExpandLevel) {
-          openBracket = html`<span class="open-bracket object" @click="${this.toggleObjectExpand}">{</span>`;
+          openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{</span>`; // @aravindanve
         } else {
-          openBracket = html`<span class="open-bracket object" @click="${this.toggleObjectExpand}">{...}</span>`;
+          openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{...}${orNull}</span>`; // @aravindanve
         }
-        closeBracket = '}';
+        closeBracket = html`}${orNull}`; // @aravindanve
       }
     }
 
@@ -158,7 +161,7 @@ export default class SchemaTree extends LitElement {
         </div>
         <div class='inside-bracket ${data['::type']}' style='padding-left:${data['::type'] !== 'xxx-of-option' ? leftPadding : 0}px;'>
           ${Object.keys(data).map((key) => html`
-            ${['::description', '::type', '::props'].includes(key)
+            ${['::description', '::type', '::nullable', '::props'].includes(key) // @aravindanve
               ? ''
               : html`${this.generateTree(
                 data[key]['::type'] === 'array' ? data[key]['::props'] : data[key],
@@ -179,7 +182,9 @@ export default class SchemaTree extends LitElement {
 
     // For Primitive Data types
     const itemParts = data.split('~|~');
+    const itemOrNull = itemParts[7] === 'nullable' ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
     const dataTypeCss = itemParts[0].replace('{', '').substring(0, 4).toLowerCase();
+    // console.log({ data: this.data }); // @aravindanve
     return html`
       <div class = "tr primitive">
         <div class='td key' style='min-width:${minFieldColWidth}px' >
@@ -188,7 +193,9 @@ export default class SchemaTree extends LitElement {
             : newPrevKey
           }:
           <span class='${dataTypeCss}'> 
-            ${prevDataType === 'array' ? `[${itemParts[0]}]` : itemParts[0]}
+            ${prevDataType === 'array' // @aravindanve
+              ? html`[${itemParts[0]}${itemOrNull}]`
+              : html`${itemParts[0]}${itemOrNull}`}
             <span>${itemParts[1]}</span>
           </span>
         </div>
@@ -225,6 +232,9 @@ export default class SchemaTree extends LitElement {
     if (rowEl.classList.contains('expanded')) {
       rowEl.classList.replace('expanded', 'collapsed');
       e.target.innerHTML = e.target.classList.contains('array') ? '[{...}]' : '{...}';
+      if (e.target.classList.contains('or-null')) { // @aravindanve
+        e.target.innerHTML += '&nbsp;| <span class="null" style="display:inline;">null</span>';
+      }
     } else {
       rowEl.classList.replace('collapsed', 'expanded');
       e.target.innerHTML = e.target.classList.contains('array') ? '[{' : '{';
