@@ -150,20 +150,23 @@ export default class SchemaTree extends LitElement {
     // const newIndentLevel = dataType === 'xxx-of-option' || data['::type'] === 'xxx-of-option' ? indentLevel : (indentLevel + 1);
     const newIndentLevel = dataType === 'xxx-of-option' || data['::type'] === 'xxx-of-option' || key.startsWith('::OPTION') ? indentLevel : (indentLevel + 1);
     if (data['::type'] === 'object') {
+      const orNull = data['::nullable'] ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+      const orNullClass = data['::nullable'] ? ' or-null' : ''; // @aravindanve
+
       if (dataType === 'array') {
-        if (schemaLevel < this.schemaExpandLevel) {
-          openBracket = html`<span class="open-bracket array-of-object" @click="${this.toggleObjectExpand}">[{</span>`;
+        if (level < this.schemaExpandLevel) {
+          openBracket = html`<span class="open-bracket array-of-object${orNullClass}" @click="${this.toggleObjectExpand}">[{</span>`; // @aravindanve
         } else {
-          openBracket = html`<span class="open-bracket array-of-object" @click="${this.toggleObjectExpand}">[{...}]</span>`;
+          openBracket = html`<span class="open-bracket array-of-object${orNullClass}" @click="${this.toggleObjectExpand}">[{...}]${orNull}</span>`; // @aravindanve
         }
-        closeBracket = '}]';
+        closeBracket = html`}]${orNull}`; // @aravindanve
       } else {
-        if (schemaLevel < this.schemaExpandLevel) {
-          openBracket = html`<span class="open-bracket object" @click="${this.toggleObjectExpand}">{</span>`;
+        if (level < this.schemaExpandLevel) {
+          openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{</span>`; // @aravindanve
         } else {
-          openBracket = html`<span class="open-bracket object" @click="${this.toggleObjectExpand}">{...}</span>`;
+          openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{...}${orNull}</span>`; // @aravindanve
         }
-        closeBracket = '}';
+        closeBracket = html`}${orNull}`; // @aravindanve
       }
     } else if (data['::type'] === 'array') {
       if (dataType === 'array') {
@@ -207,7 +210,7 @@ export default class SchemaTree extends LitElement {
             ? html`${this.generateTree(data[0], 'xxx-of-option', '', '::ARRAY~OF', '', newSchemaLevel, newIndentLevel)}`
             : html`
               ${Object.keys(data).map((dataKey) => html`
-                ${['::description', '::type', '::props', '::deprecated', '::array-type'].includes(dataKey)
+                ${['::description', '::type', '::nullable', '::props', '::deprecated', '::array-type'].includes(dataKey) // @aravindanve
                   ? data[dataKey]['::type'] === 'array' || data[dataKey]['::type'] === 'object'
                     ? html`${this.generateTree(
                       data[dataKey]['::type'] === 'array' ? data[dataKey]['::props'] : data[dataKey],
@@ -241,14 +244,16 @@ export default class SchemaTree extends LitElement {
     }
 
     // For Primitive Data types
-    const [type, readorWriteOnly, constraint, defaultValue, allowedValues, pattern, schemaDescription, , deprecated] = data.split('~|~');
+    const [type, readorWriteOnly, constraint, defaultValue, allowedValues, pattern, schemaDescription, , deprecated, nullable] = data.split('~|~');
     if (readorWriteOnly === '🆁' && this.schemaHideReadOnly === 'true') {
       return;
     }
     if (readorWriteOnly === '🆆' && this.schemaHideWriteOnly === 'true') {
       return;
     }
+    const typeOrNull = nullable === 'nullable' ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
     const dataTypeCss = type.replace(/┃.*/g, '').replace(/[^a-zA-Z0-9+]/g, '').substring(0, 4).toLowerCase();
+    // console.log({ data: this.data }); // @aravindanve
     return html`
       <div class = "tr primitive">
         <div class="td key ${deprecated}" style='min-width:${minFieldColWidth}px' >
@@ -258,8 +263,9 @@ export default class SchemaTree extends LitElement {
               ? html`<span class='key-label xxx-of-key'>${keyLabel}</span><span class="xxx-of-descr">${keyDescr}</span>`
               : html`<span class="key-label">${keyLabel}:</span>`
           }
-          <span class="${dataTypeCss}" > 
-            ${dataType === 'array' ? `[${type}]` : `${type}`}
+          <span class='${dataTypeCss}'> 
+            ${dataType === 'array' // @aravindanve
+              ? `[${type}${typeOrNull}]` : `${type}${typeOrNull}`}
             ${readorWriteOnly}
           </span>
         </div>
@@ -287,6 +293,9 @@ export default class SchemaTree extends LitElement {
           : e.target.classList.contains('array')
             ? '[...]'
             : '{...}';
+      if (e.target.classList.contains('or-null')) { // @aravindanve
+        e.target.innerHTML += '&nbsp;| <span class="null" style="display:inline;">null</span>';
+      }
     } else {
       rowEl.classList.replace('collapsed', 'expanded');
       e.target.innerHTML = e.target.classList.contains('array-of-object')
