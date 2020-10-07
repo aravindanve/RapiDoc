@@ -49,6 +49,9 @@ export default class SchemaTree extends LitElement {
         text-decoration: line-through; 
       }
 
+      .type-separator {
+        color:var(--fg);
+      }
       .open-bracket{
         display:inline-block;
         padding: 0 20px 0 0;
@@ -131,7 +134,7 @@ export default class SchemaTree extends LitElement {
     let openBracket = '';
     let closeBracket = '';
     if (data['::type'] === 'object') {
-      const orNull = data['::nullable'] ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+      const orNull = data['::nullable'] ? html`&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
       const orNullClass = data['::nullable'] ? ' or-null' : ''; // @aravindanve
 
       if (dataType === 'array') {
@@ -228,7 +231,7 @@ export default class SchemaTree extends LitElement {
 
     // For Primitive Data types
     const itemParts = data.split('~|~');
-    const itemOrNull = itemParts[7] === 'nullable' ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+    const itemOrNull = itemParts[7] === 'nullable' ? html`&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
     const dataTypeCss = itemParts[0].replace('{', '').substring(0, 4).toLowerCase();
     // console.log({ data: this.data }); // @aravindanve
     return html`
@@ -286,7 +289,7 @@ export default class SchemaTree extends LitElement {
             ? '[...]'
             : '{...}';
       if (e.target.classList.contains('or-null')) { // @aravindanve
-        e.target.innerHTML += '&nbsp;| <span class="null" style="display:inline;">null</span>';
+        e.target.innerHTML += '&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>';
       }
     } else {
       rowEl.classList.replace('collapsed', 'expanded');
