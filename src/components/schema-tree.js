@@ -131,20 +131,23 @@ export default class SchemaTree extends LitElement {
     let openBracket = '';
     let closeBracket = '';
     if (data['::type'] === 'object') {
+      const orNull = data['::nullable'] ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+      const orNullClass = data['::nullable'] ? ' or-null' : ''; // @aravindanve
+
       if (dataType === 'array') {
         if (level < this.schemaExpandLevel) {
-          openBracket = html`<span class="open-bracket array-of-object" @click="${this.toggleObjectExpand}">[{</span>`;
+          openBracket = html`<span class="open-bracket array-of-object${orNullClass}" @click="${this.toggleObjectExpand}">[{</span>`; // @aravindanve
         } else {
-          openBracket = html`<span class="open-bracket array-of-object" @click="${this.toggleObjectExpand}">[{...}]</span>`;
+          openBracket = html`<span class="open-bracket array-of-object${orNullClass}" @click="${this.toggleObjectExpand}">[{...}]${orNull}</span>`; // @aravindanve
         }
-        closeBracket = '}]';
+        closeBracket = html`}]${orNull}`; // @aravindanve
       } else {
         if (level < this.schemaExpandLevel) {
-          openBracket = html`<span class="open-bracket object" @click="${this.toggleObjectExpand}">{</span>`;
+          openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{</span>`; // @aravindanve
         } else {
-          openBracket = html`<span class="open-bracket object" @click="${this.toggleObjectExpand}">{...}</span>`;
+          openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{...}${orNull}</span>`; // @aravindanve
         }
-        closeBracket = '}';
+        closeBracket = html`}${orNull}`; // @aravindanve
       }
     } else if (data['::type'] === 'array') {
       if (dataType === 'array') {
@@ -194,7 +197,7 @@ export default class SchemaTree extends LitElement {
             ? html`${this.generateTree(data[0], 'xxx-of-option', '::ARRAY~OF', '', (level))}`
             : html`
               ${Object.keys(data).map((dataKey) => html`
-                ${['::description', '::type', '::props', '::deprecated'].includes(dataKey)
+                ${['::description', '::type', '::nullable', '::props', '::deprecated'].includes(dataKey) // @aravindanve
                   ? data[dataKey]['::type'] === 'array' || data[dataKey]['::type'] === 'object'
                     ? html`${this.generateTree(
                       data[dataKey]['::type'] === 'array' ? data[dataKey]['::props'] : data[dataKey],
@@ -225,7 +228,9 @@ export default class SchemaTree extends LitElement {
 
     // For Primitive Data types
     const itemParts = data.split('~|~');
+    const itemOrNull = itemParts[7] === 'nullable' ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
     const dataTypeCss = itemParts[0].replace('{', '').substring(0, 4).toLowerCase();
+    // console.log({ data: this.data }); // @aravindanve
     return html`
       <div class = "tr primitive">
         <div class="td key ${itemParts[8]}" style='min-width:${minFieldColWidth}px' >
@@ -236,8 +241,9 @@ export default class SchemaTree extends LitElement {
               : html`<span class="key-label">${keyLabel}</span>:`
           }
           <span class='${dataTypeCss}'> 
-            ${dataType === 'array' ? `[${itemParts[0]}]` : `${itemParts[0]}`}
-            ${itemParts[1]}
+            ${dataType === 'array' // @aravindanve
+              ? `[${itemParts[0]}${itemOrNull}]` : `${itemParts[0]}${itemOrNull}`}
+            <span>${itemParts[1]}</span>
           </span>
         </div>
         <div class='td key-descr'>
@@ -279,6 +285,9 @@ export default class SchemaTree extends LitElement {
           : e.target.classList.contains('array')
             ? '[...]'
             : '{...}';
+      if (e.target.classList.contains('or-null')) { // @aravindanve
+        e.target.innerHTML += '&nbsp;| <span class="null" style="display:inline;">null</span>';
+      }
     } else {
       rowEl.classList.replace('collapsed', 'expanded');
       e.target.innerHTML = e.target.classList.contains('array-of-object')
