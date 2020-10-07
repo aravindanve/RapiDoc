@@ -1,45 +1,48 @@
-/*
-import { webpack } from 'webpack';
-import FileManagerPlugin from 'filemanager-webpack-plugin';
-import BundleAnalyzerPlugin from 'webpack-bundle-analyzer';
-import CompressionPlugin from 'compression-webpack-plugin';
-import { DuplicatesPlugin } from 'inspectpack/plugin';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import 'path';
-// import ESLintPlugin from 'eslint-webpack-plugin';
-*/
-
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const CompressionPlugin = require('compression-webpack-plugin');
 const { DuplicatesPlugin } = require('inspectpack/plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
+const VERSION = JSON.stringify(require('./package.json').version).replace(/"/g, '');
+
 const path = require('path');
-// const ESLintPlugin = require('eslint-webpack-plugin');
 
-const rapidocVersion = JSON.stringify(require('./package.json').version).replace(/"/g, '');
-
-const rapidocBanner = `
-/**
-* @preserve
-* RapiDoc ${rapidocVersion.replace()} - WebComponent to View OpenAPI docs
-* License: MIT
-* Repo   : https://github.com/mrin9/RapiDoc
-* Author : Mrinmoy Majumdar
-*`;
+const BANNER = `RapiDoc ${VERSION.replace()} - WebComponent to View OpenAPI docs
+License: MIT
+Repo   : https://github.com/mrin9/RapiDoc
+Author : Mrinmoy Majumdar`;
 
 const commonPlugins = [
-  new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
   new webpack.HotModuleReplacementPlugin(),
   new CleanWebpackPlugin(),
-  new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
-  new HtmlWebpackPlugin({ template: 'index.html' }),
+  new webpack.optimize.LimitChunkCountPlugin({
+    maxChunks: 1,
+  }),
+  new HtmlWebpackPlugin({
+    template: process.env.NODE_ENV === 'production'
+      ? 'index.html'
+      : 'index-alt.html',
+  }),
   new CompressionPlugin(),
   new FileManagerPlugin({
+    onEnd: {
+      copy: [
+        { source: 'dist/*.js', destination: 'docs' },
+        { source: 'dist/*.woff2', destination: 'docs' },
+      ],
+    },
+  }),
+];
+
+if (process.env.NODE_ENV === 'production') {
+  console.log('BUILDING FOR PRODUCTION ... '); // eslint-disable-line no-console
+  commonPlugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'static' }));
+  commonPlugins.push(new DuplicatesPlugin({ emitErrors: false, verbose: true }));
+  commonPlugins.push(new webpack.BannerPlugin(BANNER));
+  commonPlugins.push(new webpack.DefinePlugin({ VERSION }));
+  commonPlugins.push(new FileManagerPlugin({
     events: {
       onEnd: {
         copy: [
@@ -48,66 +51,36 @@ const commonPlugins = [
         ],
       },
     },
-  }),
-  /*
-  new ESLintPlugin({
-    emitError: true,
-    emitWarning: true,
-    formatter: 'stylish',
-    overrideConfigFile: path.resolve(__dirname, '.eslintrc'),
-    outputReport: {
-      filePath: './eslint_report.html',
-      formatter: 'html',
-    },
-  }),
-  */
-];
-
-if (process.env.NODE_ENV === 'production') {
-  console.log('BUILDING FOR PRODUCTION ... '); // eslint-disable-line no-console
-  commonPlugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'static' }));
-  commonPlugins.push(new DuplicatesPlugin({ emitErrors: false, verbose: true }));
-  commonPlugins.push(new webpack.BannerPlugin({
-    raw: true,
-    banner: rapidocBanner,
-  }));
-  // commonPlugins.push(new webpack.DefinePlugin({ VERSION }));
-  commonPlugins.push(new FileManagerPlugin({
-    events: {
-      onEnd: {
-        copy: [
-          { source: 'dist/*.js', destination: 'docs' },
-        ],
-      },
-    },
   }));
 }
 
 module.exports = {
-  mode: 'production',
   entry: './src/index.js',
+  node: { fs: 'empty' },
+  externals: {
+    esprima: 'esprima',
+    'native-promise-only': 'native-promise-only',
+    commander: 'commander',
+    yargs: 'yargs',
+    'node-fetch': 'null',
+    'node-fetch-h2': 'null',
+    'cross-fetch': 'null',
+    qs: 'null',
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+    },
+  },
   devtool: 'cheap-module-source-map',
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'rapidoc-min.js',
-    publicPath: '',
-  },
-  optimization: {
-    minimizer: [
-      new TerserPlugin({
-        extractComments: {
-          condition: /^\**!|@preserve|@license|@cc_on/i,
-          banner: (licenseFile) => `RapiDoc ${rapidocVersion} | Author - Mrinmoy Majumdar | License information can be found in ${licenseFile} `,
-        },
-      }),
-    ],
   },
   devServer: {
-    static: {
-      directory: path.resolve(__dirname, 'docs'),
-    },
+    contentBase: path.join(__dirname, 'docs'),
     port: 8080,
-    hot: 'only',
+    hot: true,
   },
   module: {
     rules: [
@@ -120,7 +93,7 @@ module.exports = {
           emitWarning: true,
           // failOnWarning: true,
           // failOnError: true,
-          fix: false,
+          fix: true,
           configFile: './.eslintrc',
           outputReport: {
             filePath: './eslint_report.html',
@@ -154,12 +127,8 @@ module.exports = {
     ],
   },
   resolve: {
-    fallback: {
-      fs: false,
-    },
     alias: {
-      '~': path.resolve(__dirname, 'src'),
-      'lit-html/lib/shady-render.js': path.resolve(__dirname, './node_modules/lit-html/lit-html.js'), // removes shady-render.js from the bundle
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   plugins: commonPlugins,

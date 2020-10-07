@@ -55,6 +55,9 @@ export default class SchemaTree extends LitElement {
         text-decoration: line-through; 
       }
 
+      .type-separator {
+        color:var(--fg);
+      }
       .open-bracket{
         display:inline-block;
         padding: 0 20px 0 0;
@@ -150,7 +153,7 @@ export default class SchemaTree extends LitElement {
     // const newIndentLevel = dataType === 'xxx-of-option' || data['::type'] === 'xxx-of-option' ? indentLevel : (indentLevel + 1);
     const newIndentLevel = dataType === 'xxx-of-option' || data['::type'] === 'xxx-of-option' || key.startsWith('::OPTION') ? indentLevel : (indentLevel + 1);
     if (data['::type'] === 'object') {
-      const orNull = data['::nullable'] ? html`&nbsp;| <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+      const orNull = data['::nullable'] ? html`&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
       const orNullClass = data['::nullable'] ? ' or-null' : ''; // @aravindanve
 
       if (dataType === 'array') {
@@ -294,7 +297,7 @@ export default class SchemaTree extends LitElement {
             ? '[...]'
             : '{...}';
       if (e.target.classList.contains('or-null')) { // @aravindanve
-        e.target.innerHTML += '&nbsp;| <span class="null" style="display:inline;">null</span>';
+        e.target.innerHTML += '&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>';
       }
     } else {
       rowEl.classList.replace('collapsed', 'expanded');
