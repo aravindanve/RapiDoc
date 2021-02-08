@@ -19,6 +19,7 @@ function componentBodyTemplate(sComponent) {
         class="border tree"
         render-style='${this.renderStyle}'
         .data="${sComponent.component}"
+        isLast="true"
       ></json-tree>
         
       </div>`

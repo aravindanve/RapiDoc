@@ -11,14 +11,13 @@ import '@/components/api-response';
 /* eslint-disable indent */
 
 export function expandedEndpointBodyTemplate(path) {
-  const acceptContentTypes = new Set();
+  let accept = '';
   for (const respStatus in path.responses) {
-    for (const acceptContentType in (path.responses[respStatus]?.content)) {
-      acceptContentTypes.add(acceptContentType.trim());
+    for (const acceptContentType in (path.responses[respStatus].content)) {
+      accept = `${accept + acceptContentType}, `;
     }
   }
-  const accept = [...acceptContentTypes].join(', ');
-
+  accept = accept.replace(/,\s*$/, ''); // remove trailing comma
   // Filter API Keys that are non-empty and are applicable to the the path
   const nonEmptyApiKeys = this.resolvedSpec.securitySchemes.filter((v) => (v.finalKeyValue && path.security?.some((ps) => (v.apiKeyId in ps)))) || [];
 
@@ -50,15 +49,14 @@ export function expandedEndpointBodyTemplate(path) {
     ${pathSecurityTemplate.call(this, path.security)}
     ${codeSampleTabPanel}
     <div class='expanded-req-resp-container'>
-      <api-request  class="request-panel"
-        method = "${path.method}"
-        path = "${path.path}"
-        .parameters = "${path.parameters}"
+      <api-request  class="request-panel"  
+        method = "${path.method}", 
+        path = "${path.path}" 
+        .parameters = "${path.parameters}" 
         .request_body = "${path.requestBody}"
         .api_keys = "${nonEmptyApiKeys}"
-        .servers = "${path.servers}"
-        server-url = "${path.servers?.[0]?.url || this.selectedServer.computedUrl}"
-        fill-request-fields-with-example = "${this.fillRequestFieldsWithExample}"
+        .servers = "${path.servers}" 
+        server-url = "${path.servers?.[0]?.url || this.selectedServer.computedUrl}" 
         allow-try = "${this.allowTry}"
         accept = "${accept}"
         render-style="${this.renderStyle}" 

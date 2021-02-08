@@ -10,7 +10,6 @@
 
     gtag('config', 'UA-132775238-1');
   </script>
-  <script data-ad-client="ca-pub-3841792756480152" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
@@ -98,7 +97,7 @@
           </tr>
           <tr>
             <td class="attr-col mono bold right">sort-endpoints-by </td>
-            <td class="gray"><span class='bold dark-gray'>Allowed:<span class='blue'> path | method | summary</span></span> Sort endpoints within each tags by path, method or summary </td>
+            <td class="gray"><span class='bold dark-gray'>Allowed:<span class='blue'> path | method</span></span> Sort endpoints within each tags by path or method </td>
             <td class='default-col'>path</td>
           </tr>
           <tr>
@@ -117,13 +116,6 @@
               you should provide the location as <span class="mono dark-gray"> get-/user/login</span>              
             </td>
             <td>(empty)</td>
-          </tr>
-
-          <tr>
-            <td class="attr-col mono bold right">fill-request-fields-with-example </td>
-            <td class="gray"><span class='bold dark-gray'>Allowed:<span class='blue'> true | false </span>
-            </span> Request fields will be filled with example value (if provided in spec) </td>
-            <td class='default-col'>true</td>
           </tr>
         </table>
 
@@ -279,24 +271,9 @@
           </tr>
           <tr>
             <td class="mono bold right">render-style </td>
-            <td class="gray"><span class='bold dark-gray'>Allowed:<span class='blue'> read | view | focused</span></span> - 
-              determines display of api-docs. Currently there are three modes supported. 
-              <ul>
-                <li>
-                  <span class="mono blue">view</span> 
-                  <span>friendly for quick exploring (expand/collapse the section of your interest)</span>
-                </li>
-                <li>
-                  <span class="mono blue">read</span>
-                  <span>suitable for reading (like a continuous web-page)</span>
-                </li>
-                <li>
-                  <span class="mono blue">focused</span>
-                  <span>similar to read but focuses on a single endpoint at a time (good for large specs)</span>
-                </li>
-
-              </ul>
-              'read' - more suitable for reading 'view' more friendly for quick exploring 
+            <td class="gray"><span class='bold dark-gray'>Allowed:<span class='blue'> read | view</span></span> - 
+              determines display of api-docs. Currently there are two modes supported. 
+              'read' - more suitable for reading and 'view' more friendly for quick exploring 
             </td>
             <td>view</td>
           </tr>
@@ -409,22 +386,16 @@
           <tr>
             <td class="mono bold right">allow-search</td>
             <td class="gray">
-                Provides quick filtering of API 
-            </td>
-            <td>true</td>
-          </tr>
-          <tr>
-            <td class="mono bold right">allow-advanced-search</td>
-            <td class="gray">
-                Provides advanced search functionality, to search through API-paths, API-description, API-parameters and API-Responses
+                If set to 'false', user will not be able to search APIs. 
             </td>
             <td>true</td>
           </tr>
           <tr>
             <td class="mono bold right">allow-try</td>
             <td class="gray">
-              The 'TRY' feature allows you to make REST calls to the API server. 
-              To disable this feature, set it to false.
+              'TRY' feature allows you to make REST calls to the API server. 
+              To disable this feature set it to false<br/>
+              Setting it to false will also hide API-Servers if specified in the spec
             </td>
             <td>true</td>
           </tr>
@@ -492,7 +463,10 @@
             </td>
             <td>(empty)</td>
           </tr>
+
+
         </table>
+
       </div>  
 
       <a id="methods"></a>
@@ -555,26 +529,6 @@ el.addEventListener('spec-loaded', e => console.log(e.detail));
 <br/>
             </td>
           </tr>
-
-          <tr>
-            <td class="mono bold right">after-try</td>
-            <td class="gray">
-              called after user clicks try. Provides you with a object containing request and response details.
-<pre class="shadow1 code-block" style="width:550px"><code class="js">
-event.details will provide 
-{
-  fetchUrl: "https://..."
-  fetchOptions: { ... }, // obj with fetch options
-  responseStatus: "success | error",
-  responseContentType: "application/json",
-  responseIsBlob: {boolean},
-  response: {... }, // based on contentType contains json, text or blob
-  err?: { will exist if fetch call fails }
-}
-</code></pre>
-          <a href="https://github.com/mrin9/RapiDoc/blob/master/docs/examples/mock.html"> Example </a> 
-            </td>              
-          </tr>
         </table>
       </div>
 
@@ -583,8 +537,8 @@ event.details will provide
       <div class="table-block">
         <table class="m-table">
           <tr>
-            <th class="right">Slot Name</th>
-            <th class="left">Description </th>
+            <th >Slot Name</th>
+            <th >Description </th>
           </tr>
           <tr>
             <td class="mono bold right">(default)</td>
@@ -606,71 +560,6 @@ event.details will provide
             <td class="mono bold right">nav-logo</td>
             <td class="gray"> The contents of this slot will appear on Side navigation bar (only available in read-mode)</td>
           </tr>
-        </table>
-      </div>
-
-      <a id="developers"></a>
-      <h2> Advanced Styling </h2>
-      <div class="table-block">
-        <table class="m-table">
-          <tr>
-            <th>For those who like to perform advanced stying by building RapiDoc from source</th>
-          </tr>
-          <tr>
-            <td class="gray">
-              <span>
-                Developers can providing their own style overrides in <span class="mono blue">src/styles/custom-styles.js</span>.
-                This is provided as a clean way into add custom style overrides without making changes to the codebase
-              </span>
-              <pre class="shadow1 code-block" style="width:550px"><code class="js">// src/styles/custom-styles.js
-
-import { css } from 'lit-element';
-export default css`
-  .tag.title {
-    text-transform: capitalize;
-    border-left: 2px dotted var(--red);
-  }
-`;</code></pre>
-
-and build RapiDoc 
-
-<pre class="shadow1 code-block" style="width:550px"><code class="shell">yarn build</code></pre>
-generated <span class="mono bold">rapidoc-min.js</span>  in <span class="mono bold">dist</span> folder will have your styles
-
-                <br/>
-            </td>
-          </tr>
-        </table>
-      </div>
-
-
-      <a id="vendor-extensions"></a>
-      <h2> Supported vendor extensions</h2>
-      <div class="table-block">
-        <table class="m-table">
-          <tr>
-            <td class="mono bold right" style="width:130px;" >x-code-sample <br/> x-codeSample </td>
-            <td class="gray"> Use this vendor-extension to provide code samples in various languages
-            </td>
-            <td style="width:130px;"><a href="./examples/code-samples.html#get-/code-samples"> Usage Example </a> </td>
-          </tr>
-          <tr>
-            <td class="mono bold right">x-tag-expanded</td>
-            <td class="gray">
-              Use this vendor-extension to expand or collapse paths under a tag (applies only in view and focused render-style)
-            </td>
-            <td><a href="./examples/collapsable.html#overview"> Usage Example </a> </td>
-          </tr>
-
-          <tr>
-            <td class="mono bold right">x-client-id <br/> x-client-secret </td>
-            <td class="gray">
-              Use these vendor-extensions to pre fill <span class="mono bold">client-id</span> and <span class="mono bold">client-secret</span> in the UI 
-            </td>
-            <td><a href="./examples/oauth-vendor-extension.html"> Usage Example </a> </td>
-          </tr>
-
-
         </table>
       </div>
     </div>  

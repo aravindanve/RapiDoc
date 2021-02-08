@@ -8,6 +8,7 @@ import callbackTemplate from '@/templates/callback-template';
 import { pathSecurityTemplate } from '@/templates/security-scheme-template';
 import { pathIsInSearch, invalidCharsRegEx, rapidocApiKey } from '@/utils/common-utils';
 
+/* eslint-disable indent */
 function toggleExpand(path) {
   if (path.expanded) {
     path.expanded = false; // collapse
@@ -23,24 +24,6 @@ function toggleExpand(path) {
   this.requestUpdate();
 }
 
-export function expandCollapseAll(operationsRootEl, action = 'expand-all') {
-  const elList = [...operationsRootEl.querySelectorAll('.section-tag')];
-  if (action === 'expand-all') {
-    elList.map((el) => {
-      el.classList.replace('collapsed', 'expanded');
-    });
-  } else {
-    elList.map((el) => {
-      el.classList.replace('expanded', 'collapsed');
-    });
-  }
-}
-
-function onExpandCollapseAll(e, action = 'expand-all') {
-  expandCollapseAll.call(this, e.target.closest('.operations-root'), action);
-}
-
-/* eslint-disable indent */
 function endpointHeadTemplate(path) {
   return html`
   <div @click="${(e) => { toggleExpand.call(this, path, e); }}" class='endpoint-head ${path.method} ${path.deprecated ? 'deprecated' : ''} ${path.expanded ? 'expanded' : 'collapsed'}'>
@@ -62,13 +45,14 @@ function endpointHeadTemplate(path) {
 }
 
 function endpointBodyTemplate(path) {
-  const acceptContentTypes = new Set();
+  let accept = '';
   for (const respStatus in path.responses) {
-    for (const acceptContentType in (path.responses[respStatus]?.content)) {
-      acceptContentTypes.add(acceptContentType.trim());
+    for (const acceptContentType in (path.responses[respStatus].content)) {
+      accept = `${accept + acceptContentType}, `;
     }
   }
-  const accept = [...acceptContentTypes].join(', ');
+  accept = accept.replace(/,\s*$/, ''); // remove trailing comma
+
   // Filter API Keys that are non-empty and are applicable to the the path
   const nonEmptyApiKeys = this.resolvedSpec.securitySchemes.filter((v) => (v.finalKeyValue && path.security?.some((ps) => (v.apiKeyId in ps)))) || [];
 
@@ -97,8 +81,7 @@ function endpointBodyTemplate(path) {
         .api_keys = "${nonEmptyApiKeys}"
         .servers = "${path.servers}" 
         server-url = "${path.servers && path.servers.length > 0 ? path.servers[0].url : this.selectedServer.computedUrl}" 
-        active-schema-tab = "${this.defaultSchemaTab}"
-        fill-request-fields-with-example = "${this.fillRequestFieldsWithExample}"
+        active-schema-tab = "${this.defaultSchemaTab}" 
         allow-try = "${this.allowTry}"
         accept = "${accept}"
         render-style="${this.renderStyle}" 
@@ -124,21 +107,11 @@ function endpointBodyTemplate(path) {
 
 export default function endpointTemplate() {
   return html`
-    <div style="display:flex; justify-content:flex-end;"> 
-      <span @click="${(e) => onExpandCollapseAll(e, 'expand-all')}" style="color:var(--primary-color); cursor:pointer;">
-        Expand all
-      </span> 
-      &nbsp;|&nbsp; 
-      <span @click="${(e) => onExpandCollapseAll(e, 'collapse-all')}" style="color:var(--primary-color); cursor:pointer;" >
-        Collapse all
-      </span> 
-      &nbsp; sections
-    </div>
     ${this.resolvedSpec.tags.map((tag) => html`
     <div class='regular-font section-gap section-tag ${tag.expanded ? 'expanded' : 'collapsed'}' > 
     
       <div class='section-tag-header' @click="${() => { tag.expanded = !tag.expanded; this.requestUpdate(); }}">
-        <div id='${tag.name.replace(invalidCharsRegEx, '-')}' class="sub-title tag" style="color:var(--primary-color)">${tag.name}</div>
+        <div id='${tag.name.replace(invalidCharsRegEx, '-')}' class="sub-title tag">${tag.name}</div>
       </div>
       <div class='section-tag-body'>
         <div class="regular-font regular-font-size m-markdown" style="padding-bottom:12px">

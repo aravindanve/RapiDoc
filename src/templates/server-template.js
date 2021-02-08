@@ -79,18 +79,15 @@ export default function serverTemplate() {
       ${!this.resolvedSpec.servers || (this.resolvedSpec.servers.length === 0)
         ? ''
         : html`
-          ${this.resolvedSpec.servers.map((server, i) => html`
+          ${this.resolvedSpec.servers.map((server) => html`
             <input type = 'radio'
               name = 'api_server'
-              id = 'srvr-opt-${i}'
               value = '${server.url}'
               @change = ${(e) => { onApiServerChange.call(this, e, server); }}
               .checked = '${this.selectedServer.url === server.url}'
-              style = 'margin:4px 0; cursor:pointer'
+              style = 'margin:4px 0'
             />
-              <label style='cursor:pointer' for='srvr-opt-${i}'>
-                ${server.url} ${server.description ? html`- <span class='regular-font'>${server.description} </span>` : ''}
-              </label>
+              ${server.url} ${server.description ? html`- ${server.description}` : ''}
             <br/>
           `)}
       `}

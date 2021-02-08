@@ -4,22 +4,12 @@ info:
   version: 1.0.0
   title: Testing different data-types
 paths:
-  /nested-object-in-request-body:
-    post:
-      tags:
-        - Test with various data types
-      summary: Request Body accepting a JSON
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/person"
   /nested-object:
     get:
-      tags:
-        - Test with various data types
-      summary: Nested object
+      summary: Response schema made of nested objects. 
       description: Response schema is made up of multiple nested object, For simple schema check out [simple object](#get-/simple-object)
+      tags:
+        - Nested Object
       responses:
         '200':
           description: successful operation
@@ -67,18 +57,13 @@ paths:
                         dependentLastName:
                           description: Dependent Last Name
                           type: string
-                  hobbies:
-                    type: array
-                    description: array of objects
-                    items:
-                      type: object
-
+                          
   /simple-object:
     get:
-      tags:
-        - Test with various data types
-      summary: Simple object
+      summary: Response is a simple object. 
       description: Response schema is a simple object, which contains only primitive properties. For complex schema check out [nested object](#get-/nested-object)
+      tags:
+        - Simple Object
       responses:
         '200':
           description: successful operation
@@ -95,9 +80,7 @@ paths:
                     type: integer
   /person:
     post:
-      tags:
-        - Test with various data types
-      summary: Data Types with constraints
+      summary: Demonstrates data-types and constraints
       description: Request-Parameters and Response-Schema contains various data types and constrains. Check out how is it desplayed below
       parameters:
         - name: height
@@ -141,23 +124,6 @@ paths:
           schema:
             type: string
             format: date
-        - name: phone
-          in: query
-          schema:
-            type: string
-            pattern: '/^\+(?:[0-9]-?){6,14}[0-9]$/'
-        - name: marital-status
-          in: query
-          required: true
-          example: married
-          schema:
-            type: string
-            enum:
-              - married
-              - unmarried
-              - widowed
-              - unknown
-            default: unknown
         - name: interests
           in: query
           required: true
@@ -194,25 +160,32 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/person'
+                  $ref: '#/components/schemas/Person'
+tags:
+  - name: Simple Object
+    description: Simple Datatype
+  - name: Nested Object
+    description: Nested Datatype
+  - name: Person
+    description: Person Datatype
 components:
   schemas:
-    category:
+    Category:
       type: object
       properties:
-        catId:
+        id:
           description: Category ID
           allOf:
-            - $ref: '#/components/schemas/id'
+            - $ref: '#/components/schemas/Id'
         name:
           description: Category name
           type: string
-          deprecated: true
-    id:
+          minLength: 1
+    Id:
       type: integer
       format: int64
       readOnly: true
-    person:
+    Person:
       type: object
       required:
         - name
@@ -221,22 +194,13 @@ components:
         id:
           description: Pet ID
           allOf:
-            - $ref: '#/components/schemas/id'
+            - $ref: '#/components/schemas/Id'
         category:
           description: Categories this person belongs to
           allOf:
-            - $ref: '#/components/schemas/category'
-        country:
-          type: object
-          deprecated: true
-          properties:
-            countryCode:
-              type: string
-            countryName:
-              type: string
-        dependentIds:
+            - $ref: '#/components/schemas/Category'
+        DependentIds:
           type: array
-          deprecated: true
           description: IDs of Dependents .
           items:
             type: integer
@@ -262,10 +226,10 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/tag'
+            $ref: '#/components/schemas/Tag'
         maritalStatus:
           type: string
-          description: Marital status in case of adult
+          description: Pet status in the store
           enum:
             - married
             - unmarried
@@ -276,13 +240,13 @@ components:
           pattern: '/^\+(?:[0-9]-?){6,14}[0-9]$/'
           example: +1-202-555-0192
           nullable: true
-    tag:
+    Tag:
       type: object
       properties:
         id:
           description: Tag ID
           allOf:
-            - $ref: '#/components/schemas/id'
+            - $ref: '#/components/schemas/Id'
         name:
           description: Tag name
           type: string

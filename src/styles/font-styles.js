@@ -1,9 +1,6 @@
 import { css } from 'lit-element';
 
 export default css`
-  .hover-bg:hover{
-    background: var(--bg3);
-  }
   ::selection {
     background: var(--selection-bg);
     color: var(--selection-fg);
@@ -63,13 +60,7 @@ export default css`
     margin-block-end: 0.2em;
   }
   p { margin-block-start: 0.5em; }
-  a { color: var(--blue); cursor:pointer; }
-  a.inactive-link { 
-    color:var(--fg);
-    text-decoration: none;
-    cursor:text;
-  }
-  
+
   code,
   pre {
     margin: 0px;
