@@ -231,7 +231,7 @@ export default class SchemaTree extends LitElement {
 
     // For Primitive Data types
     const itemParts = data.split('~|~');
-    const itemOrNull = itemParts[7] === 'nullable' ? html`&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
+    const itemOrNull = itemParts[9] === 'nullable' ? html`&nbsp;<span class="type-separator">|</span> <span class="null" style="display:inline;">null</span>` : ''; // @aravindanve
     const dataTypeCss = itemParts[0].replace('{', '').substring(0, 4).toLowerCase();
     // console.log({ data: this.data }); // @aravindanve
     return html`
@@ -245,7 +245,7 @@ export default class SchemaTree extends LitElement {
           }
           <span class='${dataTypeCss}'> 
             ${dataType === 'array' // @aravindanve
-              ? `[${itemParts[0]}${itemOrNull}]` : `${itemParts[0]}${itemOrNull}`}
+              ? html`[${itemParts[0]}${itemOrNull}]` : html`${itemParts[0]}${itemOrNull}`}
             <span>${itemParts[1]}</span>
           </span>
         </div>
