@@ -8,6 +8,7 @@ import TableStyles from '@/styles/table-styles';
 import InputStyles from '@/styles/input-styles';
 import TabStyles from '@/styles/tab-styles';
 import BorderStyles from '@/styles/border-styles';
+import CustomStyles from '@/styles/custom-styles';
 import '@/components/schema-tree';
 import '@/components/schema-table';
 
@@ -28,7 +29,7 @@ export default class ApiResponse extends LitElement {
       schemaStyle: { type: String, attribute: 'schema-style' },
       renderStyle: { type: String, attribute: 'render-style' },
       selectedStatus: { type: String, attribute: 'selected-status' },
-      selectedMimeType: { type: String },
+      selectedMimeType: { type: String, attribute: 'selected-mime-type' },
       activeSchemaTab: { type: String, attribute: 'active-schema-tab' },
       schemaExpandLevel: { type: Number, attribute: 'schema-expand-level' },
       schemaDescriptionExpanded: { type: String, attribute: 'schema-description-expanded' },
@@ -71,6 +72,7 @@ export default class ApiResponse extends LitElement {
         margin-top:12px;
         border-top: 1px dashed var(--border-color);
       }`,
+      CustomStyles,
     ];
   }
 
@@ -87,6 +89,11 @@ export default class ApiResponse extends LitElement {
     `;
   }
 
+  resetSelection() {
+    this.selectedStatus = '';
+    this.selectedMimeType = '';
+  }
+
   /* eslint-disable indent */
   responseTemplate() {
     if (!this.responses) { return ''; }
@@ -95,7 +102,7 @@ export default class ApiResponse extends LitElement {
         this.selectedStatus = statusCode;
       }
       const allMimeResp = {};
-      for (const mimeResp in this.responses[statusCode].content) {
+      for (const mimeResp in this.responses[statusCode]?.content) {
         const mimeRespObj = this.responses[statusCode].content[mimeResp];
         if (!this.selectedMimeType) {
           this.selectedMimeType = mimeResp;
@@ -120,7 +127,7 @@ export default class ApiResponse extends LitElement {
       }
       // Headers for each response status
       const tempHeaders = [];
-      for (const key in this.responses[statusCode].headers) {
+      for (const key in this.responses[statusCode]?.headers) {
         tempHeaders.push({ name: key, ...this.responses[statusCode].headers[key] });
       }
       this.headersForEachRespStatus[statusCode] = tempHeaders;
@@ -128,7 +135,7 @@ export default class ApiResponse extends LitElement {
     }
     return html`
       ${Object.keys(this.responses).length > 1
-        ? html`<div class='row'>
+        ? html`<div class='row' style='flex-wrap:wrap'>
           ${Object.keys(this.responses).map((respStatus) => html`
             ${respStatus === '$$ref' // Swagger-Client parser creates '$$ref' object if JSON references are used to create responses - this should be ignored
               ? ''
@@ -156,8 +163,8 @@ export default class ApiResponse extends LitElement {
       ${Object.keys(this.responses).map((status) => html`
         <div style = 'display: ${status === this.selectedStatus ? 'block' : 'none'}' >
           <div class="top-gap">
-            <span class="resp-descr m-markdown ">${unsafeHTML(marked(this.responses[status].description || ''))}</span>
-            ${(this.headersForEachRespStatus[status] && this.headersForEachRespStatus[status].length > 0)
+            <span class="resp-descr m-markdown ">${unsafeHTML(marked(this.responses[status]?.description || ''))}</span>
+            ${(this.headersForEachRespStatus[status] && this.headersForEachRespStatus[status]?.length > 0)
               ? html`${this.responseHeaderListTemplate(this.headersForEachRespStatus[status])}`
               : ''
             }

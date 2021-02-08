@@ -40,7 +40,6 @@ export default css`
 }
 
 .tr.xxx-of{
-  color:var(--primary-color);
   border-top: 1px dotted var(--primary-color);
 }
 
@@ -54,6 +53,13 @@ export default css`
   padding:0px 5px; 
   margin-bottom:1px; 
   display:inline-block;
+}
+
+.xxx-of-descr {
+    font-family: var(--font-regular);
+    color: var(--primary-color);
+    font-size: calc(var(--font-size-small) - 1px);
+    margin-left: 2px;
 }
 
 .stri, .string, .uri, .url, .byte, .bina, .date, .pass, .ipv4, .ipv4, .uuid, .emai, .host {color:var(--green);}
@@ -72,6 +78,15 @@ export default css`
   cursor:pointer;
   padding:5px 0;
   margin:0 2px;
+}
+.schema-root-type {
+  cursor:auto;
+  color:var(--fg2);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.schema-root-type.xxx-of {
+  display:none;
 }
 .toolbar-item:first-of-type { margin:0 2px 0 0;}
 

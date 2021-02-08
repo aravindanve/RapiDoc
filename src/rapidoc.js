@@ -20,9 +20,11 @@ import EndpointStyles from '@/styles/endpoint-styles';
 import PrismStyles from '@/styles/prism-styles';
 import TabStyles from '@/styles/tab-styles';
 import NavStyles from '@/styles/nav-styles';
-
+import InfoStyles from '@/styles/info-styles';
+import CustomStyles from '@/styles/custom-styles';
+import { expandCollapseNavBarTag } from '@/templates/navbar-template';
 import {
-  pathIsInSearch, invalidCharsRegEx, sleep, rapidocApiKey,
+  pathIsInSearch, invalidCharsRegEx, sleep, rapidocApiKey, advancedSearch, hasValidPathInUrlHash,
 } from '@/utils/common-utils';
 import ProcessSpec from '@/utils/spec-parser';
 import mainBodyTemplate from '@/templates/main-body-template';
@@ -59,6 +61,7 @@ export default class RapiDoc extends LitElement {
       schemaExpandLevel: { type: Number, attribute: 'schema-expand-level' },
       schemaDescriptionExpanded: { type: String, attribute: 'schema-description-expanded' },
       responseAreaHeight: { type: String, attribute: 'response-area-height' },
+      fillRequestFieldsWithExample: { type: String, attribute: 'fill-request-fields-with-example' },
 
       // API Server
       apiKeyName: { type: String, attribute: 'api-key-name' },
@@ -70,12 +73,14 @@ export default class RapiDoc extends LitElement {
 
       // Hide/Show Sections & Enable Disable actions
       showHeader: { type: String, attribute: 'show-header' },
+      showSideNav: { type: String, attribute: 'show-side-nav' },
       showInfo: { type: String, attribute: 'show-info' },
       allowAuthentication: { type: String, attribute: 'allow-authentication' },
       allowTry: { type: String, attribute: 'allow-try' },
       allowSpecUrlLoad: { type: String, attribute: 'allow-spec-url-load' },
       allowSpecFileLoad: { type: String, attribute: 'allow-spec-file-load' },
       allowSearch: { type: String, attribute: 'allow-search' },
+      allowAdvancedSearch: { type: String, attribute: 'allow-advanced-search' },
       allowServerSelection: { type: String, attribute: 'allow-server-selection' },
       showComponents: { type: String, attribute: 'show-components' },
 
@@ -105,9 +110,10 @@ export default class RapiDoc extends LitElement {
       // Filters
       matchPaths: { type: String, attribute: 'match-paths' },
 
-      // Internal Attributes
+      // Internal Properties
       selectedContentId: { type: String },
-
+      showAdvancedSearchDialog: { type: Boolean },
+      advancedSearchMatches: { type: Object },
     };
   }
 
@@ -121,6 +127,7 @@ export default class RapiDoc extends LitElement {
       PrismStyles,
       TabStyles,
       NavStyles,
+      InfoStyles,
       css`
       :host {
         --border-radius: 2px;
@@ -266,7 +273,11 @@ export default class RapiDoc extends LitElement {
         padding: 6px 0px; 
       }
       .expanded-endpoint-body.deprecated{ filter:opacity(0.6); }
-      .divider { border-top:2px solid var(--primary-color); width:100%; }
+      .divider { 
+        border-top: 2px solid var(--primary-color);
+        margin: 24px 0;
+        width:100%;
+      }
 
       .tooltip {
         cursor:pointer;
@@ -333,6 +344,7 @@ export default class RapiDoc extends LitElement {
           padding: 24px 100px 12px 100px; 
         }
       }`,
+      CustomStyles,
     ];
   }
 
@@ -345,9 +357,14 @@ export default class RapiDoc extends LitElement {
     if (!this.defaultSchemaTab || !'example, model,'.includes(`${this.defaultSchemaTab},`)) { this.defaultSchemaTab = 'model'; }
     if (!this.schemaExpandLevel || this.schemaExpandLevel < 1) { this.schemaExpandLevel = 99999; }
     if (!this.schemaDescriptionExpanded || !'true, false,'.includes(`${this.schemaDescriptionExpanded},`)) { this.schemaDescriptionExpanded = 'false'; }
+    if (!this.fillRequestFieldsWithExample || !'true, false,'.includes(`${this.fillRequestFieldsWithExample},`)) { this.fillRequestFieldsWithExample = 'true'; }
     if (!this.responseAreaHeight) {
       this.responseAreaHeight = '300px';
     }
+
+    if (!this.allowSearch || !'true, false,'.includes(`${this.allowSearch},`)) { this.allowSearch = 'true'; }
+    if (!this.allowAdvancedSearch || !'true, false,'.includes(`${this.allowAdvancedSearch},`)) { this.allowAdvancedSearch = 'true'; }
+
     if (!this.allowTry || !'true, false,'.includes(`${this.allowTry},`)) { this.allowTry = 'true'; }
     if (!this.apiKeyValue) { this.apiKeyValue = '-'; }
     if (!this.apiKeyLocation) { this.apiKeyLocation = 'header'; }
@@ -355,14 +372,16 @@ export default class RapiDoc extends LitElement {
 
     if (!this.oauthReceiver) { this.oauthReceiver = 'oauth-receiver.html'; }
     if (!this.sortTags || !'true, false,'.includes(`${this.sortTags},`)) { this.sortTags = 'false'; }
-    if (!this.sortEndpointsBy || !'method, path,'.includes(`${this.sortEndpointsBy},`)) { this.sortEndpointsBy = 'path'; }
+    if (!this.sortEndpointsBy || !'method, path, summary,'.includes(`${this.sortEndpointsBy},`)) { this.sortEndpointsBy = 'path'; }
     if (!this.navItemSpacing || !'compact, relaxed, default,'.includes(`${this.navItemSpacing},`)) { this.navItemSpacing = 'default'; }
     if (!this.usePathInNavBar || !'true, false,'.includes(`${this.usePathInNavBar},`)) { this.usePathInNavBar = 'false'; }
     if (!this.fontSize || !'default, large, largest,'.includes(`${this.fontSize},`)) { this.fontSize = 'default'; }
 
     if (!this.showInfo || !'true, false,'.includes(`${this.showInfo},`)) { this.showInfo = 'true'; }
+    if (!this.showSideNav || !'true false'.includes(this.showSideNav)) { this.showSideNav = 'true'; }
     if (!this.showComponents || !'true false'.includes(this.showComponents)) { this.showComponents = 'false'; }
     if (!this.infoDescriptionHeadingsInNavBar || !'true, false,'.includes(`${this.infoDescriptionHeadingsInNavBar},`)) { this.infoDescriptionHeadingsInNavBar = 'false'; }
+    if (!this.showAdvancedSearchDialog) { this.showAdvancedSearchDialog = false; }
 
     marked.setOptions({
       highlight: (code, lang) => {
@@ -374,11 +393,7 @@ export default class RapiDoc extends LitElement {
     });
 
     window.addEventListener('hashchange', () => {
-      if (this.renderStyle === 'focused') {
-        this.scrollTo(window.location.hash.substring(1));
-      } else {
-        this.scrollTo(window.location.hash.substring(1));
-      }
+      this.scrollTo(window.location.hash.substring(1));
     }, true);
   }
 
@@ -516,26 +531,36 @@ export default class RapiDoc extends LitElement {
 
   onSearchChange(e) {
     this.matchPaths = e.target.value.toLowerCase();
-
-    let didFindAnything = false;
     this.resolvedSpec.tags.forEach((tag) => tag.paths.filter((v) => {
       if (this.matchPaths) {
         v.expanded = false;
         if (pathIsInSearch(this.matchPaths, v)) {
-          didFindAnything = true;
           tag.expanded = true;
         }
       }
     }));
-    if (didFindAnything) {
-      this.requestUpdate();
-    }
+    this.requestUpdate();
   }
 
   onClearSearch() {
     const searchEl = this.shadowRoot.getElementById('nav-bar-search');
     searchEl.value = '';
     this.matchPaths = '';
+  }
+
+  onShowSearchModalClicked() {
+    this.showAdvancedSearchDialog = true;
+    this.requestUpdate();
+  }
+
+  // Event Handler on Dialog-Box is opened
+  async onOpenSearchDialog(e) {
+    // Set focus to text input
+    const inputEl = e.detail.querySelector('input');
+    await sleep(0);
+    if (inputEl) {
+      inputEl.focus();
+    }
   }
 
   // Public Method
@@ -546,8 +571,17 @@ export default class RapiDoc extends LitElement {
 
     this.matchPaths = '';
     try {
+      this.resolvedSpec = null;
       this.loading = true;
       this.loadFailed = false;
+      this.requestUpdate();
+      if (this.renderStyle === 'read' || this.renderStyle === 'focused') {
+        // Remove the previous active state from navbar
+        const oldNavEl = this.shadowRoot.querySelector('.nav-bar-tag.active, .nav-bar-path.active, .nav-bar-info.active, .nav-bar-h1.active, .nav-bar-h2.active');
+        if (oldNavEl) {
+          oldNavEl.classList.remove('active');
+        }
+      }
       const spec = await ProcessSpec(
         specUrl,
         this.sortTags === 'true',
@@ -571,6 +605,27 @@ export default class RapiDoc extends LitElement {
     }
   }
 
+  resetSelectedContentId() {
+    // No content is selected at start
+    this.selectedContentId = '';
+    // If there is hash in url then check if hash belong to any of the path in spec
+    if (window.location.hash) {
+      this.selectedContentId = window.location.hash.substring(1).startsWith('overview--')
+        ? 'overview' : hasValidPathInUrlHash(this.resolvedSpec.tags)
+          ? window.location.hash.substring(1) : '';
+    }
+    // If there is no matching hash to path, check if there is sufficient data to display overview otherwise just display first path from first tag
+    if (!this.selectedContentId) {
+      if (this.showInfo === 'true' && (this.resolvedSpec.info?.description || this.resolvedSpec.info?.title)) {
+        this.selectedContentId = 'overview';
+      } else {
+        this.selectedContentId = `${this.resolvedSpec.tags[0]?.paths[0]?.method}-${this.resolvedSpec.tags[0]?.paths[0]?.path}`;
+      }
+    }
+    // Set url back in address bar
+    window.location.hash = `${this.selectedContentId}`;
+  }
+
   async afterSpecParsedAndValidated(spec) {
     this.resolvedSpec = spec;
     if (this.defaultApiServerUrl) {
@@ -588,13 +643,7 @@ export default class RapiDoc extends LitElement {
         this.selectedServer = this.resolvedSpec.servers[0];
       }
     }
-    if (this.showInfo === 'true' && !window.location.hash && (this.resolvedSpec.info?.description || this.resolvedSpec.info?.title)) {
-      this.selectedContentId = 'overview';
-    } else if (window.location.hash) {
-      this.selectedContentId = window.location.hash.substring(1).startsWith('overview--') ? 'overview' : window.location.hash.substring(1);
-    } else {
-      this.selectedContentId = `${this.resolvedSpec.tags[0]?.paths[0]?.method}-${this.resolvedSpec.tags[0]?.paths[0]?.path}`;
-    }
+    this.resetSelectedContentId();
     this.requestUpdate();
     const specLoadedEvent = new CustomEvent('spec-loaded', { detail: spec });
     this.dispatchEvent(specLoadedEvent);
@@ -684,6 +733,18 @@ export default class RapiDoc extends LitElement {
     if (contentEl) {
       // Disable IntersectionObserver before scrolling into the view, else it will try to scroll the navbar which is not needed here
       this.isIntersectionObserverActive = false;
+
+      // for focused style it is important to reset request-body-selection and response selection which maintains the state for in case of multiple req-body or multiple response mime-type
+      if (this.renderStyle === 'focused') {
+        const requestEl = this.shadowRoot.querySelector('api-request');
+        if (requestEl) {
+          requestEl.resetRequestBodySelection();
+        }
+        const responseEl = this.shadowRoot.querySelector('api-response');
+        if (responseEl) {
+          responseEl.resetSelection();
+        }
+      }
       contentEl.scrollIntoView({ behavior: 'auto', block: 'start' });
       const oldNavEl = this.shadowRoot.querySelector('.nav-bar-tag.active, .nav-bar-path.active, .nav-bar-info.active, .nav-bar-h1.active, .nav-bar-h2.active');
       if (oldNavEl) {
@@ -709,9 +770,11 @@ export default class RapiDoc extends LitElement {
     }
   }
 
-  // Public Method
+  // Public Method (scrolls to a given path and highlights the left-nav selection)
   async scrollTo(path, expandPath = true) {
-    this.selectedContentId = path.startsWith('overview--') ? 'overview' : path;
+    if (path) {
+      this.selectedContentId = path.startsWith('overview--') ? 'overview' : path;
+    }
     await sleep(0);
     const gotoEl = this.shadowRoot.getElementById(path);
     if (gotoEl) {
@@ -724,8 +787,28 @@ export default class RapiDoc extends LitElement {
       if (newNavEl) {
         newNavEl.classList.add('active');
         newNavEl.scrollIntoView({ behavior: 'auto', block: 'center' });
+        this.requestUpdate();
+        expandCollapseNavBarTag(newNavEl, 'expand');
       }
     }
+  }
+
+  // Event handler for Advanced Search text-inputs and checkboxes
+  onAdvancedSearch(ev, delay) {
+    const eventTargetEl = ev.target;
+    clearTimeout(this.timeoutId);
+    this.timeoutId = setTimeout(() => {
+      let searchInputEl;
+      if (eventTargetEl.type === 'text') {
+        searchInputEl = eventTargetEl;
+      } else {
+        searchInputEl = eventTargetEl.closest('.advanced-search-options').querySelector('input[type=text]');
+      }
+      const searcOptions = [...eventTargetEl.closest('.advanced-search-options').querySelectorAll('input:checked')].map((v) => v.id);
+      this.advancedSearchMatches = advancedSearch(searchInputEl.value, this.resolvedSpec.tags, searcOptions);
+      this.requestUpdate();
+      // console.log('the ptint %o', targetEl);
+    }, delay);
   }
 }
 customElements.define('rapi-doc', RapiDoc);

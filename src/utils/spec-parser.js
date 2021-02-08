@@ -17,6 +17,7 @@ export default async function ProcessSpec(specUrl, sortTags = false, sortEndpoin
     patch: true,
     warnOnly: true,
     resolveInternal: true,
+    anchors: true,
   };
 
   try {
@@ -362,7 +363,7 @@ function groupByTags(openApiSpec, sortTags = false, sortEndpointsBy) {
             security: fullPath.security,
             commonSummary: commonPathProp.summary,
             commonDescription: commonPathProp.description,
-            xCodeSamples: fullPath['x-code-samples'],
+            xCodeSamples: fullPath['x-codeSamples'] || fullPath['x-code-samples'] || '',
           });
         });// End of tag path create
       }
@@ -376,6 +377,12 @@ function groupByTags(openApiSpec, sortTags = false, sortEndpointsBy) {
       if (v.paths) {
         // v.paths.sort((a, b) => a.method.localeCompare(b.method));
         v.paths.sort((a, b) => methods.indexOf(a.method).toString().localeCompare(methods.indexOf(b.method)));
+      }
+    });
+  } else if (sortEndpointsBy === 'summary') {
+    tagsWithSortedPaths.forEach((v) => {
+      if (v.paths) {
+        v.paths.sort((a, b) => (a.summary || a.description || a.path).localeCompare(b.summary || b.description || b.path));
       }
     });
   } else {
