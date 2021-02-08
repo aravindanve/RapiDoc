@@ -27,6 +27,42 @@ export default css`
   scrollbar-color: var(--nav-hover-bg-color) transparent;
 }
 
+.nav-bar-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+}
+.nav-bar.read .nav-bar-tag-icon {
+  display:none;
+}
+
+.nav-bar-tag-icon {
+  color: var(--nav-text-color);
+  font-size: 20px; 
+  margin-right: -16px;
+}
+.nav-bar-tag-icon:hover {
+  color:var(--nav-hover-text-color);
+}
+.nav-bar.focused .nav-bar-tag-and-paths.collapsed .nav-bar-paths-under-tag {
+  display:none;
+}
+.nav-bar.focused .nav-bar-tag-and-paths.collapsed .nav-bar-tag-icon::after {
+  content: '⌵';
+  width:16px;
+  height:16px;
+  text-align: center;
+  display: inline-block;
+  transform: rotate(270deg);
+}
+.nav-bar.focused .nav-bar-tag-and-paths.expanded .nav-bar-tag-icon::after {
+  content: '⌵';
+  width:16px;
+  height:16px;
+  text-align: center;
+  display: inline-block;
+}
 .nav-scroll::-webkit-scrollbar {
   width: 10px;
 }
@@ -39,6 +75,7 @@ export default css`
 
 .nav-bar-tag {
   font-size: var(--font-size-regular);
+  color: var(--nav-accent-color);
   border-left:4px solid transparent;
   font-weight:bold;
   padding: 15px 30px 15px 10px;
@@ -72,16 +109,17 @@ export default css`
   font-weight:bold;
 }
 .nav-bar-section {
-  display: block;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   font-size: var(--font-size-small);
   color: var(--nav-text-color);
-  text-transform: uppercase;
   padding: 15px 15px 5px 5px;
-  text-align: right;
   filter:opacity(0.5);
   font-weight:bold;
   border-bottom: 1px solid var(--nav-text-color);
 }
+
 .nav-bar-section:first-child {
   display: none;
 }

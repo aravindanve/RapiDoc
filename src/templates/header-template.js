@@ -25,7 +25,7 @@ export default function headerTemplate() {
             @change="${this.onSepcUrlChange}" 
             spellcheck="false" 
           >
-          <div style="margin: 6px 5px 0 -24px; font-size:var(--title-font-size); cursor:pointer;">&#x2b90;</div> 
+          <div style="margin: 6px 5px 0 -24px; font-size:var(--title-font-size); cursor:pointer;">&#x21a9;</div> 
         `
       } 
       ${(this.allowSpecFileLoad === 'false')
@@ -45,8 +45,17 @@ export default function headerTemplate() {
       ${(this.allowSearch === 'false' || 'read focused'.includes(this.renderStyle))
         ? ''
         : html`  
-          <input id="search" class="header-input" type="text"  placeholder="search" @change="${this.onSearchChange}" style="max-width:130px;margin-left:10px;" spellcheck="false" >
-          <div style="margin: 6px 5px 0 -24px; font-size:var(--title-font-size); cursor:pointer;">&#x2b90;</div>
+          <input id="search" class="header-input" type="text"  placeholder="Quick Search" @change="${this.onSearchChange}" style="max-width:130px;margin-left:10px;" spellcheck="false" >
+          <div style="margin: 6px 5px 0 -24px; font-size:var(--title-font-size); cursor:pointer;">&#x21a9;</div>
+        `
+      }
+      
+      ${(this.allowSearch === 'false' || this.allowAdvancedSearch === 'false' || 'read focused'.includes(this.renderStyle))
+        ? ''
+        : html`
+          <button class="m-btn primary only-large-screen" style="margin-left:10px;" @click="${this.onShowSearchModalClicked}">
+            Advanced Search
+          </button>
         `
       }
     </div>

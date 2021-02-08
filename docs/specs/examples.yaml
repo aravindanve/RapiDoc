@@ -4,15 +4,38 @@ info:
   description:  Providing Examples
   version: 1.0.0
 paths:
-  /multiple-examples-in-query-param:
+  /multiple-examples-in-request-parameters/{path-param-1}/{path-param-2}:
     get:
       tags:
         - Providing Examples
-      description: Multiple Examples for querystring parameters
-      parameters:  
+      parameters:
+      - name: 'path-param-1'
+        in: 'path'
+        schema:
+          type: 'string'
+          default: "p1-opt-2"  
+        examples:
+          example1: 
+            value: "p1-opt-1"
+          example2:
+            value: "p1-opt-2"
+      - name: 'path-param-2'
+        in: 'path'
+        schema:
+          type: 'string'
+        examples:
+          example1: 
+            value: "p2-opt-1"
+          example2:
+            value: "p2-opt-2"
+      - name: 'age'
+        description: Single Example
+        in: 'query'
+        schema:
+          type: 'number'
+        example: 24
       - name: 'country-code'
-        required: true
-        description: Multiple examples. Notice `us` do not have a summary
+        description: Multiple examples _(Notice `us` do not have a summary)_
         in: 'query'
         schema:
           type: 'string'
@@ -25,6 +48,19 @@ paths:
           example3:
             value: "ch"
             summary: "China"
+      - name: 'marital-status'
+        in: 'query'
+        schema:
+          type: 'string'
+          default: "unmarried"  
+        examples:
+          example1: 
+            value: "married"
+          example2:
+            value: "unmarried"
+          example3:
+            value: "widowed"
+
   /multiple-examples-by-response-type:
     get:
       description: Multiple Examples provide for each media-type (`application/json` or `application/json`) 
@@ -369,6 +405,185 @@ paths:
                     amount: 700,
                     currency: INR
                   }
+  /object-containg-array-property-with-example:
+    get:
+      summary: Object schema with array type property containing example
+      tags:
+        - Providing Examples
+      responses:
+        200:
+          description: Object with array type property containing example
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObjectWithArrayPropExample"
+  /examples-anyOf:
+    get:
+      tags:
+        - Providing Examples
+      summary: AnyOf schemas with examples as part of the subschema
+      responses:
+        '200':
+          description: AnyOf schemas with examples as part of the subschema
+          content:
+            application/problem+json:
+              schema:
+                anyOf:
+                  - title: AnyOf example 1
+                    description: First example
+                    type: object
+                    properties:
+                      foo:
+                        type: string
+                      bar:
+                        type: integer
+                    example:
+                      foo: foo
+                      bar: 42
+                  - title: Second anyOf
+                    description: Another example
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        foo:
+                          type: string
+                        quux:
+                          type: array
+                          items:
+                            type: number
+                    example:
+                      foo: foo
+                      quux: [ 42, 24 ]
+                  - title: No example defined
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        foo:
+                          type: string
+                        quux:
+                          type: array
+                          items:
+                            type: number
+  /examples-anyOf-with-general-properties:
+    get:
+      tags:
+        - Providing Examples
+      summary: AnyOf schemas with general properties 
+      responses:
+        '200':
+          description: AnyOf schemas with general properties
+          content:
+            application/problem+json:
+              schema:
+                title: A composed object
+                type: object
+                properties:
+                  common:
+                    type: string
+                  other:
+                    type: number
+                anyOf:
+                  - title: Schema 1
+                    type: object
+                    properties:
+                      foo:
+                        type: string
+                      bar:
+                        type: integer
+                    example:
+                      foo: foo
+                      bar: 42
+                  - title: Second schema
+                    type: object
+                    properties:
+                      baz:
+                        type: string
+                        format: url
+  /examples-oneOf:
+    get:
+      tags:
+        - Providing Examples
+      summary: OneOf schema with examples as part of the subschema
+      responses:
+        '200':
+          description: OneOf schema with examples as part of the subschema
+          content:
+            application/problem+json:
+              schema:
+                oneOf:
+                  - title: Schema 1
+                    type: object
+                    properties:
+                      foo:
+                        type: string
+                      bar:
+                        type: integer
+                    example:
+                      foo: foo
+                      bar: 42
+                  - title: Second schema
+                    type: object
+                    properties:
+                      baz:
+                        type: string
+                        format: url
+  /examples-allOf:
+    get:
+      tags:
+        - Providing Examples
+      summary: AllOf schemas with examples as part of the subschema
+      responses:
+        '200':
+          description: AllOf schemas with examples as part of the subschema
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - title: Schema 1
+                    type: object
+                    properties:
+                      foo:
+                        type: string
+                      bar:
+                        type: integer
+                  - title: Second schema
+                    type: object
+                    properties:
+                      baz:
+                        type: string
+                        format: url
+  /examples-allOf-anyOf:
+    get:
+      tags:
+        - Providing Examples
+      summary: Combination of allOf & nested anyOf schemas
+      responses:
+        '200':
+          description: Combination of allOf & nested anyOf schemas
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - title: Schema 1
+                    type: object
+                    properties:
+                      foo:
+                        type: string
+                      bar:
+                        type: integer
+                  - title: Second schema
+                    anyOf:
+                      - type: object
+                        properties:
+                          baz:
+                            type: string
+                            format: url
+                      - type: object
+                        properties:
+                          foobar:
+                            type: string
 components:
   schemas:
     cost:
@@ -417,3 +632,17 @@ components:
       example:
         name: name-1
         age: 1
+    ObjectWithArrayPropExample:
+      type: object
+      properties:
+        numberProp:
+          type: number
+          example: 1000
+        stringProp:
+          type: string
+          enum: [value0, value1]
+        arrayProp:
+          type: array
+          items:
+            type: number
+          example: [0, 1, 2]

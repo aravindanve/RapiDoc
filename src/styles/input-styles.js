@@ -19,6 +19,7 @@ export default css`
   transition: background-color 0.2s;
   user-select: none;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
 .m-btn.primary {
   background-color: var(--primary-color);
@@ -27,10 +28,15 @@ export default css`
 .m-btn.thin-border { border-width: 1px; }
 .m-btn.large { padding:8px 14px; }
 .m-btn.small { padding:5px 12px; }
+.m-btn.tiny { padding:5px 6px; }
 .m-btn.circle { border-radius: 50%; }
 .m-btn:hover { 
   background-color: var(--primary-color);
   color: var(--primary-color-invert);
+}
+.m-btn.nav { border: 2px solid var(--nav-accent-color); }
+.m-btn.nav:hover { 
+  background-color: var(--nav-accent-color);
 }
 .m-btn:disabled{ 
   background-color: var(--bg3);
@@ -85,6 +91,7 @@ select {
   appearance: none;
   cursor: pointer;
 }
+
 select:hover {
   border-color: var(--primary-color);
 }
@@ -113,6 +120,7 @@ input[type="file"]{
   border: 1px solid var(--primary-color);
   min-height: calc(var(--font-size-small) + 18px);
 }
+
 input[type="file"]::-webkit-file-upload-button {
   font-family: var(--font-regular);
   font-size: var(--font-size-small);
@@ -155,5 +163,52 @@ textarea::-webkit-scrollbar-thumb {
   color:var(--blue);
   font-family:var(--font-mono);
   margin-bottom:2px;
+}
+
+input[type="checkbox"]:focus{
+  outline:0;
+}
+
+/* Toggle Body */
+input[type="checkbox"] {
+  appearance: none;
+  display: inline-block;
+  background-color: var(--light-bg);
+  border: 1px solid var(--light-bg);
+  border-radius: 10px;
+  cursor: pointer;
+  height: 20px;
+  position: relative;
+  transition: border .25s .15s, box-shadow .25s .3s, padding .25s;
+  min-width: 36px;
+  width: 36px;
+  vertical-align: top;
+}
+/* Toggle Thumb */
+input[type="checkbox"]:after {
+  position: absolute;
+  background-color: var(--bg);
+  border: 1px solid var(--light-bg);
+  border-radius: 8px;
+  content: '';
+  top: 0px;
+  left: 0px;
+  right: 16px;
+  display: block;
+  height: 16px;
+  transition: border .25s .15s, left .25s .1s, right .15s .175s;
+}
+
+/* Toggle Body - Checked */
+input[type="checkbox"]:checked {
+  box-shadow: inset 0 0 0 13px var(--green);
+  border-color: var(--green);
+}
+/* Toggle Thumb - Checked*/
+input[type="checkbox"]:checked:after {
+  border: 1px solid var(--green);
+  left: 16px;
+  right: 1px;
+  transition: border .25s, left .15s .25s, right .25s .175s;
 }
 `;
