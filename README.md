@@ -13,6 +13,9 @@
 # RapiDoc
 Custom Element for Open-API spec viewing
 
+## NOTE
+This is a modified version of the package [RapiDoc](https://www.npmjs.com/package/rapidoc) with support for `nullable` types
+
 ## Features
 - Supports Swagger 2.0, OpenAPI 3.x.x 
 - Works with any framework or with no framework
