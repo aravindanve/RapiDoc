@@ -2,11 +2,21 @@ import { html } from 'lit-element';
 import marked from 'marked';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 
-function onApiServerChange(e, server) {
-  if (e && e.target.checked) {
-    this.selectedServer = server;
-    this.requestUpdate();
+export function setApiServer(serverUrl) {
+  const serverObj = this.resolvedSpec?.servers.find((s) => s.url === serverUrl);
+  if (!serverObj) {
+    return false;
   }
+  this.selectedServer = serverObj;
+  this.requestUpdate();
+  this.dispatchEvent(new CustomEvent('api-server-change', {
+    bubbles: true,
+    composed: true,
+    detail: {
+      selectedServer: serverObj,
+    },
+  }));
+  return true;
 }
 
 function onApiServerVarChange(e, serverObj) {
@@ -54,6 +64,7 @@ function serverVarsTemplate() {
             : html`
             <input
               type = "text"
+              part="textbox textbox-server-var"
               spellcheck = "false"
               data-var = "${kv[0]}"
               value = "${kv[1].default}"
@@ -72,19 +83,20 @@ function serverVarsTemplate() {
 }
 
 export default function serverTemplate() {
+  if (!this.resolvedSpec || this.resolvedSpec.specLoadError) { return ''; }
   return html`
-  <div id = 'api-servers' style="margin-top:24px; margin-bottom:24px;" class='regular-font observe-me ${'read focused'.includes(this.renderStyle) ? 'section-gap--read-mode' : 'section-gap'}'>
-    <div class = 'sub-title'> API SERVER: </div>
+  <section id = 'servers' part="section-servers" style="text-align:left; direction:ltr; margin-top:24px; margin-bottom:24px;" class='regular-font observe-me ${'read focused'.includes(this.renderStyle) ? 'section-gap--read-mode' : 'section-gap'}'>
+    <div class = 'sub-title'>API SERVER</div>
     <div class = 'mono-font' style='margin: 12px 0; font-size:calc(var(--font-size-small) + 1px);'>
-      ${!this.resolvedSpec.servers || (this.resolvedSpec.servers.length === 0)
+      ${!this.resolvedSpec.servers || this.resolvedSpec.servers?.length === 0
         ? ''
         : html`
-          ${this.resolvedSpec.servers.map((server, i) => html`
+          ${this.resolvedSpec?.servers.map((server, i) => html`
             <input type = 'radio'
               name = 'api_server'
               id = 'srvr-opt-${i}'
               value = '${server.url}'
-              @change = ${(e) => { onApiServerChange.call(this, e, server); }}
+              @change = ${() => { setApiServer.call(this, server.url); }}
               .checked = '${this.selectedServer.url === server.url}'
               style = 'margin:4px 0; cursor:pointer'
             />
@@ -94,9 +106,10 @@ export default function serverTemplate() {
             <br/>
           `)}
       `}
-      <div class="table-title primary-text"> SELECTED: ${this.selectedServer.computedUrl}</div>
+      <div class="table-title primary-text" part="label-selected-server"> SELECTED: ${this.selectedServer?.computedUrl || 'none'}</div>
     </div>
+    <slot name="servers"></slot>
     ${serverVarsTemplate.call(this)}
-  </div>`;
+  </section>`;
 }
 /* eslint-enable indent */

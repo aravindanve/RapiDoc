@@ -8,6 +8,7 @@ export default css`
   border-radius: var(--border-radius);
   margin: 0;
   max-width: 100%;
+  direction: ltr;
 }
 .m-table tr:first-child td,
 .m-table tr:first-child th {
@@ -19,6 +20,11 @@ export default css`
   line-height: calc(var(--font-size-small) + 4px);
   padding: 4px 5px 4px;
   vertical-align: top;
+}
+
+.m-table.padded-12 td, 
+.m-table.padded-12 th {
+  padding: 12px;
 }
 
 .m-table td:not([align]), 

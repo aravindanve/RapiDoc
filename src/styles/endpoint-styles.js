@@ -11,7 +11,7 @@ export default css`
   word-break: break-all;
 }
 
-.endpoint-head .descr{
+.endpoint-head .descr {
   font-size: var(--font-size-small);
   color:var(--light-fg);
   font-weight:400;
@@ -100,7 +100,7 @@ export default css`
   padding:8px 8px;
 }
 .summary .title{
-  font-size:calc(var(--title-font-size) + 2px);
+  font-size:calc(var(--font-size-regular) + 2px);
   margin-bottom: 6px;
   word-break: break-all;
 }
@@ -109,9 +109,9 @@ export default css`
   padding:2px 5px;
   vertical-align: middle;
   font-size:var(--font-size-small);
-  height: calc(var(--font-size-small) + 8px);
+  height: calc(var(--font-size-small) + 16px);
   line-height: calc(var(--font-size-small) + 8px);
-  min-width: 48px;
+  width: 60px;
   border-radius: 2px;
   display:inline-block;
   text-align: center;
@@ -138,41 +138,41 @@ export default css`
   flex-direction: column;
   border-top:1px solid var(--light-border-color);
 }
-.request,
-.response{
+
+.view-mode-request,
+api-response.view-mode {
   flex:1; 
   min-height:100px;
   padding:16px 8px;
   overflow:hidden;
 }
-.request{
+.view-mode-request {
   border-width:0 0 1px 0;
   border-style:dashed;
 }
 
-.head .request,
-.patch .request,
-.options .request { 
+.head .view-mode-request,
+.patch .view-mode-request,
+.options .view-mode-request { 
   border-color:var(--yellow); 
 }
-.put .request{ 
+.put .view-mode-request { 
   border-color:var(--orange); 
 }
-.post .request{ 
+.post .view-mode-request { 
   border-color:var(--green); 
 }
-.get .request{ 
+.get .view-mode-request { 
   border-color:var(--blue); 
 }
-.delete .request{ 
+.delete .view-mode-request { 
   border-color:var(--red); 
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 1024px) {
   .only-large-screen { display:block; }
   .endpoint-head .path{
     font-size: var(--font-size-regular);
-    min-width:400px;
   }
   .endpoint-head .descr{
     display: flex;
@@ -183,16 +183,17 @@ export default css`
   }
   .req-resp-container{
     flex-direction: var(--layout, row);
+    flex-wrap: nowrap;
   }
-  .request{
+  api-response.view-mode {
+    padding:16px;
+  }
+  .view-mode-request.row-layout {
     border-width:0 1px 0 0;
-    padding:16px 24px;
+    padding:16px;
   }
-  .response{
-    padding:16px 24px;
-  } 
   .summary{
-    padding:8px 24px;
+    padding:8px 16px;
   }
 }
 `;

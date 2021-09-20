@@ -24,6 +24,7 @@ export default css`
     font-size: calc(var(--font-size-small) + 4px);
     font-weight:bold;
     margin-bottom:8px;
+    text-align:left;
   }
   .tiny-title { 
     font-size:calc(var(--font-size-small) + 1px); 
@@ -83,10 +84,12 @@ export default css`
   }
 
   .m-markdown p,
-  .m-markdown span,
-  .m-markdown li {
+  .m-markdown span {
     font-size: var(--font-size-regular);
     line-height:calc(var(--font-size-regular) + 8px);
+  }
+  .m-markdown li{
+    line-height:calc(var(--font-size-regular) + 12px);
   }
   
   .m-markdown-small p,
@@ -143,7 +146,6 @@ export default css`
   }
 
   .m-markdown pre {
-    margin-top: 8px;
     padding: 12px;
     background-color: var(--code-bg);
     color:var(--code-fg);
@@ -165,6 +167,7 @@ export default css`
   .m-markdown pre code {
     color: var(--code-fg);
     background-color: var(--code-bg);
+    background-color: transparent;
   }
 
   .m-markdown-small pre code {
@@ -257,5 +260,8 @@ export default css`
     margin-inline-end: 0;
     border-left: 3px solid var(--border-color);
     padding: 6px 0 6px 6px;
+  }
+  .m-markdown hr{
+    border: 1px solid var(--border-color);
   }
 `;

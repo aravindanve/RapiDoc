@@ -1,7 +1,5 @@
-import { html } from 'lit-html';
-import { LitElement } from 'lit-element';
-
-import DialogBoxStyles from '@/styles/dialog-box-styles';
+import { LitElement, html } from 'lit-element';
+import DialogBoxStyles from '~/styles/dialog-box-styles';
 
 export default class DialogBox extends LitElement {
   static get properties() {
@@ -40,6 +38,7 @@ export default class DialogBox extends LitElement {
         }
       }
     }
+    super.attributeChangedCallback(name, oldVal, newVal);
   }
 
   /* eslint-disable indent */

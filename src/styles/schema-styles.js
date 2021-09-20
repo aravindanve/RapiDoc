@@ -1,16 +1,19 @@
 import { css } from 'lit-element';
 
 export default css`
+
+*, *:before, *:after { box-sizing: border-box; }
+
 .tr {
   display: flex;
   flex: none;
   width: 100%;
+  box-sizing: content-box;
   border-bottom: 1px dotted transparent;
 }
 .td {
   display: block;
   flex: 0 0 auto;
-  box-sizing: border-box;
 }
 .key {
   font-family: var(--font-mono);
@@ -65,8 +68,8 @@ export default css`
 .stri, .string, .uri, .url, .byte, .bina, .date, .pass, .ipv4, .ipv4, .uuid, .emai, .host {color:var(--green);}
 .inte, .numb, .number, .int6, .int3, .floa, .doub, .deci .blue {color:var(--blue);}
 .null {color:var(--red);}
-.bool, .boolean{color:var(--purple)}
-.enum {color:var(--orange)}
+.bool, .boolean{color:var(--orange)}
+.enum {color:var(--purple)}
 .recu {color:var(--brown)}
 .toolbar {
   display:flex;
@@ -74,7 +77,7 @@ export default css`
   padding: 2px 0;
   color:var(--primary-color);
 }
-.toolbar-item{
+.toolbar-item {
   cursor:pointer;
   padding:5px 0;
   margin:0 2px;

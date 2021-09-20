@@ -20,7 +20,9 @@ export default function callbackTemplate(callbacks) {
                     <span style="line-height:20px; vertical-align: baseline;">${pathObj[0]} </span>
                   </div>  
                   <div class='expanded-req-resp-container'>
-                    <api-request  class="request-panel"
+                    <api-request
+                      class = "${this.renderStyle}-mode callback"  
+                      style = "width:100%;"
                       callback = "true"
                       method = "${method[0] || ''}", 
                       path = "${pathObj[0] || ''}" 
@@ -33,9 +35,15 @@ export default function callbackTemplate(callbacks) {
                       active-schema-tab = "${this.defaultSchemaTab}"
                       schema-expand-level = "${this.schemaExpandLevel}"
                       schema-description-expanded = "${this.schemaDescriptionExpanded}"
+                      allow-schema-description-expand-toggle = "${this.allowSchemaDescriptionExpandToggle}",
+                      schema-hide-read-only = "${this.schemaHideReadOnly}"
+                      fetch-credentials = "${this.fetchCredentials}"
+                      exportparts="btn btn-fill btn-outline btn-try"
                     > </api-request>
 
                     <api-response
+                      style = "width:100%;"
+                      class = "${this.renderStyle}-mode"
                       callback = "true"
                       .responses="${method[1]?.responses}"
                       render-style="${this.renderStyle}"
@@ -43,6 +51,8 @@ export default function callbackTemplate(callbacks) {
                       active-schema-tab = "${this.defaultSchemaTab}"
                       schema-expand-level = "${this.schemaExpandLevel}"
                       schema-description-expanded = "${this.schemaDescriptionExpanded}"
+                      allow-schema-description-expand-toggle = "${this.allowSchemaDescriptionExpandToggle}"
+                      exportparts = "btn--resp btn-fill--resp btn-outline--resp"
                     > </api-response>
                   </div>
                 </div>  

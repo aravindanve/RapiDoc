@@ -1,5 +1,13 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "allowImportExportEverywhere": false,
+    "ecmaVersion": 2020,
+    "babelOptions": {
+      "configFile": "./.babelrc.json"
+    }
+  },
   "extends": "airbnb-base",
   "settings": {
     "import/resolver":{
@@ -11,6 +19,9 @@
   "env": {
     "browser": true,
     "node": true
+  },
+  "globals": {
+    "globalThis": false // means it is not writeable
   },
   "rules": {
     "max-len": [1, 300, 2, {"ignoreComments": true}],
@@ -24,6 +35,11 @@
     "consistent-return": 0,
     "array-callback-return": 0,
     "prefer-destructuring": 0,
-    "class-methods-use-this": 0
+    "class-methods-use-this": 0,
+    "object-curly-newline": ["error", {
+      "ObjectPattern": { "multiline": true },
+      "ImportDeclaration": "never",
+      "ExportDeclaration": { "multiline": true, "minProperties": 6 }
+  }]
   }
 }

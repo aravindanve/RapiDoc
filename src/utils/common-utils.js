@@ -10,7 +10,7 @@ export function debounce(fn, delay) {
   };
 }
 
-export const invalidCharsRegEx = new RegExp(/[\s#:?&={}]/, 'g');
+export const invalidCharsRegEx = new RegExp(/[\s#:?&={}]/, 'g'); // used for generating valid html element ids by replacing the invalid chars with hyphen (-)
 export const rapidocApiKey = '_rapidoc_api_key';
 
 export function sleep(ms) {
@@ -48,9 +48,17 @@ export async function wait(ms) {
   });
 }
 
-export function pathIsInSearch(searchVal, path) {
-  const stringToSearch = `${path.method} ${path.path} ${path.summary || path.description || ''} ${path.operationId || ''}`.toLowerCase();
-  return stringToSearch.includes(searchVal);
+export function componentIsInSearch(searchVal, component) {
+  return component.name.toLowerCase().includes(searchVal.toLowerCase());
+}
+
+export function pathIsInSearch(searchVal, path, matchType = 'includes') {
+  if (matchType === 'includes') {
+    const stringToSearch = `${path.method} ${path.path} ${path.summary || path.description || ''} ${path.operationId || ''}`.toLowerCase();
+    return stringToSearch.includes(searchVal.toLowerCase());
+  }
+  const regex = new RegExp(searchVal, 'i');
+  return regex.test(`${path.method} ${path.path}`);
 }
 
 export function schemaKeys(schemaProps, result = new Set()) {
@@ -103,6 +111,7 @@ export function advancedSearch(searchVal, allSpecTags, searchOptions = []) {
 
       if (stringToSearch.toLowerCase().includes(searchVal.trim().toLowerCase())) {
         pathsMatched.push({
+          elementId: path.elementId,
           method: path.method,
           path: path.path,
           summary: path.summary || path.description || '',
@@ -114,7 +123,52 @@ export function advancedSearch(searchVal, allSpecTags, searchOptions = []) {
   return pathsMatched;
 }
 
+export function prettyXml(sourceXmlString) {
+  const xmlDoc = new DOMParser().parseFromString(sourceXmlString, 'text/xml');
+  const xsltDoc = new DOMParser().parseFromString([
+    // describes how we want to modify the XML - indent everything
+    `<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+      <xsl:strip-space elements="*"/>
+        <xsl:template match="para[content-style][not(text())]">
+          <xsl:value-of select="normalize-space(.)"/>
+        </xsl:template>
+        <xsl:template match="node()|@*">
+          <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>
+        </xsl:template>
+        <xsl:output indent="yes"/>
+      </xsl:stylesheet>`,
+  ].join('\n'), 'application/xml');
+  const xsltProcessor = new XSLTProcessor();
+  xsltProcessor.importStylesheet(xsltDoc);
+  const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+  return new XMLSerializer().serializeToString(resultDoc);
+}
+/*
 export function hasValidPathInUrlHash(tags) {
-  const filterTags = tags.filter((tag) => tag.paths.filter((path) => window.location.hash.substring(1) === `${path.method}-${path.path.replace(invalidCharsRegEx, '-')}`).length > 0);
-  return filterTags.length > 0;
+  return tags.find((tag) => tag.paths.find((path) => window.location.hash.substring(1) === path.elementId));
+}
+*/
+
+export function downloadResource(url, fileName) {
+  if (url) {
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.style = 'display: none';
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    a.remove();
+  }
+}
+
+export function viewResource(url) {
+  if (url) {
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.style = 'display: none';
+    a.href = url;
+    a.target = '_blank';
+    a.click();
+    a.remove();
+  }
 }

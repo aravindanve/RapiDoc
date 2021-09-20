@@ -1,4 +1,5 @@
 <!doctype html>
+<html>
   <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-132775238-1"></script>
@@ -19,7 +20,8 @@
   <body>
     <rapi-doc 
       id = "thedoc"
-      spec-url="../specs/markdown.yaml" 
+      spec-url="../specs/markdown.yaml"
+      allow-server-selection = "false"
       allow-authentication = "false" 
       show-header = "false"
       render-style = "read"
@@ -33,7 +35,7 @@
           <button class='btn' onclick="document.getElementById('thedoc').setAttribute('theme', 'dark')" >Dark</button>
           <button class='btn' onclick="document.getElementById('thedoc').setAttribute('theme', 'light')" >Light</button>
         </div>
-        <div style="display: flex;justify-content: center; margin: 2px 0"">
+        <div style="display: flex;justify-content: center; margin: 2px 0">
           <button class='btn' onclick="document.getElementById('thedoc').setAttribute('font-size', 'default')" >Default Font</button>
           <button class='btn' onclick="document.getElementById('thedoc').setAttribute('font-size', 'large')" >Large Font</button>
           <button class='btn' onclick="document.getElementById('thedoc').setAttribute('font-size', 'largest')" >Largest Font</button>

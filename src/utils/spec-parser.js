@@ -1,99 +1,79 @@
 /* eslint-disable no-use-before-define */
-// import JsonRefs from 'json-refs';
-import converter from 'swagger2openapi';
-import Swagger from 'swagger-client';
+import OpenApiParser from '@apitools/openapi-parser';
 import marked from 'marked';
-import { invalidCharsRegEx, rapidocApiKey } from '@/utils/common-utils';
+import { invalidCharsRegEx, rapidocApiKey, sleep } from '~/utils/common-utils';
 
-export default async function ProcessSpec(specUrl, sortTags = false, sortEndpointsBy = '', attrApiKey = '', attrApiKeyLocation = '', attrApiKeyValue = '', serverUrl = '') {
+export default async function ProcessSpec(specUrl, generateMissingTags = false, sortTags = false, sortEndpointsBy = '', attrApiKey = '', attrApiKeyLocation = '', attrApiKeyValue = '', serverUrl = '') {
   let jsonParsedSpec;
-  let convertedSpec;
-  // let resolvedRefSpec;
-  // let resolveOptions;
-  // const specLocation = '';
-  // let url;
-
-  const convertOptions = {
-    patch: true,
-    warnOnly: true,
-    resolveInternal: true,
-    anchors: true,
-  };
-
   try {
-    let specObj;
+    this.requestUpdate(); // important to show the initial loader
+    let specMeta;
     if (typeof specUrl === 'string') {
-      specObj = await Swagger(specUrl);
+      specMeta = await OpenApiParser.resolve({ url: specUrl }); // Swagger(specUrl);
     } else {
-      specObj = await Swagger({ spec: specUrl });
+      specMeta = await OpenApiParser.resolve({ spec: specUrl }); // Swagger({ spec: specUrl });
     }
-    jsonParsedSpec = specObj.spec;
-    if (specObj.spec.swagger) {
-      convertedSpec = await converter.convertObj(specObj.spec, convertOptions);
-      jsonParsedSpec = convertedSpec.openapi;
-    }
-    /*
-      // JsonRefs cant load yaml files, so first use converter
-      if (typeof specUrl === 'string') {
-        // resolvedRefSpec = await JsonRefs.resolveRefsAt(specUrl, resolveOptions);
-        convertedSpec = await converter.convertUrl(specUrl, convertOptions);
-        specLocation = convertedSpec.source.trim();
-        if (specLocation.startsWith('/')) {
-          url = new URL(`.${specLocation}`, window.location.href);
-          specLocation = url.pathname;
-        }
-      } else {
-        // resolvedRefSpec = await JsonRefs.resolveRefs(specUrl, resolveOptions);
-        convertedSpec = await converter.convertObj(specUrl, convertOptions);
-        url = new URL(window.location.href);
-        specLocation = url.pathname;
-      }
-      // convertedSpec = await converter.convertObj(resolvedRefSpec.resolved, convertOptions);
-      resolveOptions = {
-        resolveCirculars: false,
-        location: specLocation, // location is important to specify to resolve relative external file references when using JsonRefs.resolveRefs() which takes an JSON object
+    await sleep(0); // important to show the initial loader (allows for rendering updates)
+    if (specMeta.spec && (specMeta.spec.components || specMeta.spec.info || specMeta.spec.servers || specMeta.spec.tags || specMeta.spec.paths)) {
+      jsonParsedSpec = specMeta.spec;
+      this.dispatchEvent(new CustomEvent('before-render', { detail: { spec: jsonParsedSpec } }));
+    } else {
+      console.info('RapiDoc: %c There was an issue while parsing the spec %o ', 'color:orangered', specMeta); // eslint-disable-line no-console
+      return {
+        specLoadError: true,
+        isSpecLoading: false,
+        info: {
+          title: 'Error loading the spec',
+          description: specMeta.response?.url ? `${specMeta.response?.url} ┃ ${specMeta.response?.status}  ${specMeta.response?.statusText}` : 'Unable to load the Spec',
+          version: ' ',
+        },
+        tags: [],
       };
-      resolvedRefSpec = await JsonRefs.resolveRefs(convertedSpec.openapi, resolveOptions);
-      // jsonParsedSpec = convertedSpec.openapi;
-      jsonParsedSpec = resolvedRefSpec.resolved;
-    */
+    }
   } catch (err) {
     console.info('RapiDoc: %c There was an issue while parsing the spec %o ', 'color:orangered', err); // eslint-disable-line no-console
   }
 
   // const pathGroups = groupByPaths(jsonParsedSpec);
 
-  // Tags
-  const tags = groupByTags(jsonParsedSpec, sortTags, sortEndpointsBy);
+  // Tags with Paths and WebHooks
+  const tags = groupByTags(jsonParsedSpec, generateMissingTags, sortTags, sortEndpointsBy);
 
+  // Components
   const components = getComponents(jsonParsedSpec);
-  const infoDescriptionHeaders = getInfoDescriptionHeaders(jsonParsedSpec);
+
+  // Info Description Headers
+  const infoDescriptionHeaders = jsonParsedSpec.info?.description ? getHeadersFromMarkdown(jsonParsedSpec.info.description) : [];
 
   // Security Scheme
   const securitySchemes = [];
-  if (jsonParsedSpec.components && jsonParsedSpec.components.securitySchemes) {
+  if (jsonParsedSpec.components?.securitySchemes) {
+    const securitySchemeSet = new Set();
     Object.entries(jsonParsedSpec.components.securitySchemes).forEach((kv) => {
-      const securityObj = { apiKeyId: kv[0], ...kv[1] };
-      securityObj.value = '';
-      securityObj.finalKeyValue = '';
-      if (kv[1].type === 'apiKey' || kv[1].type === 'http') {
-        securityObj.in = kv[1].in || 'header';
-        securityObj.name = kv[1].name || 'Authorization';
-        securityObj.user = '';
-        securityObj.password = '';
-      } else if (kv[1].type === 'oauth2') {
-        securityObj.in = 'header';
-        securityObj.name = 'Authorization';
-        securityObj.clientId = '';
-        securityObj.clientSecret = '';
+      if (!securitySchemeSet.has(kv[0])) {
+        securitySchemeSet.add(kv[0]);
+        const securityObj = { securitySchemeId: kv[0], ...kv[1] };
+        securityObj.value = '';
+        securityObj.finalKeyValue = '';
+        if (kv[1].type === 'apiKey' || kv[1].type === 'http') {
+          securityObj.in = kv[1].in || 'header';
+          securityObj.name = kv[1].name || 'Authorization';
+          securityObj.user = '';
+          securityObj.password = '';
+        } else if (kv[1].type === 'oauth2') {
+          securityObj.in = 'header';
+          securityObj.name = 'Authorization';
+          securityObj.clientId = '';
+          securityObj.clientSecret = '';
+        }
+        securitySchemes.push(securityObj);
       }
-      securitySchemes.push(securityObj);
     });
   }
 
   if (attrApiKey && attrApiKeyLocation && attrApiKeyValue) {
     securitySchemes.push({
-      apiKeyId: rapidocApiKey,
+      securitySchemeId: rapidocApiKey,
       description: 'api-key provided in rapidoc element attributes',
       type: 'apiKey',
       oAuthFlow: '',
@@ -111,7 +91,7 @@ export default async function ProcessSpec(specUrl, sortTags = false, sortEndpoin
     } else if (v.type === 'apiKey') {
       v.typeDisplay = `API Key (${v.name})`;
     } else if (v.type === 'oauth2') {
-      v.typeDisplay = `OAuth (${v.apiKeyId})`;
+      v.typeDisplay = `OAuth (${v.securitySchemeId})`;
     } else {
       v.typeDisplay = v.type;
     }
@@ -150,38 +130,23 @@ export default async function ProcessSpec(specUrl, sortTags = false, sortEndpoin
   }
   servers = jsonParsedSpec.servers;
   const parsedSpec = {
+    specLoadError: false,
+    isSpecLoading: false,
     info: jsonParsedSpec.info,
     infoDescriptionHeaders,
     tags,
     components,
-    // pathGroups,
     externalDocs: jsonParsedSpec.externalDocs,
     securitySchemes,
     servers,
-    basePath: jsonParsedSpec.basePath, // Only available in swagger V2
   };
   return parsedSpec;
 }
 
-/*
-function groupByPaths(openApiSpec) {
-  const paths = [];
-  for (const p in openApiSpec.paths) {
-    openApiSpec.paths[p].path = p;
-    openApiSpec.paths[p].expanded = false;
-    openApiSpec.paths[p].activeMethod = 'no-active-method';
-    paths.push(openApiSpec.paths[p]);
-  }
-  return paths;
-}
-*/
-function getInfoDescriptionHeaders(openApiSpec) {
-  if (openApiSpec && openApiSpec.info && openApiSpec.info.description) {
-    const tokens = marked.lexer(openApiSpec.info.description);
-    const headers = tokens.filter((v) => v.type === 'heading' && v.depth <= 2);
-    return headers || [];
-  }
-  return [];
+function getHeadersFromMarkdown(markdownContent) {
+  const tokens = marked.lexer(markdownContent);
+  const headers = tokens.filter((v) => v.type === 'heading' && v.depth <= 2);
+  return headers || [];
 }
 
 function getComponents(openApiSpec) {
@@ -261,42 +226,53 @@ function getComponents(openApiSpec) {
   return components || [];
 }
 
-function groupByTags(openApiSpec, sortTags = false, sortEndpointsBy) {
-  const methods = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options']; // this is also used for ordering endpoints by methods
+function groupByTags(openApiSpec, generateMissingTags = false, sortTags = false, sortEndpointsBy) {
+  const supportedMethods = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options']; // this is also used for ordering endpoints by methods
   const tags = openApiSpec.tags && Array.isArray(openApiSpec.tags)
     ? openApiSpec.tags.map((v) => ({
       show: true,
+      elementId: `tag--${v.name.replace(invalidCharsRegEx, '-')}`,
       name: v.name,
-      description: v.description,
+      description: v.description || '',
+      headers: v.description ? getHeadersFromMarkdown(v.description) : [],
       paths: [],
       expanded: v['x-tag-expanded'] !== false,
     }))
     : [];
 
+  const pathsAndWebhooks = openApiSpec.paths || {};
+  if (openApiSpec.webhooks) {
+    for (const [key, value] of Object.entries(openApiSpec.webhooks)) {
+      value._type = 'webhook'; // eslint-disable-line no-underscore-dangle
+      pathsAndWebhooks[key] = value;
+    }
+  }
   // For each path find the tag and push it into the corresponding tag
-  for (const path in openApiSpec.paths) {
-    const commonParams = openApiSpec.paths[path].parameters;
+  for (const pathOrHookName in pathsAndWebhooks) {
+    const commonParams = pathsAndWebhooks[pathOrHookName].parameters;
     const commonPathProp = {
-      summary: openApiSpec.paths[path].summary,
-      description: openApiSpec.paths[path].description,
-      servers: openApiSpec.paths[path].servers ? openApiSpec.paths[path].servers : [],
-      parameters: openApiSpec.paths[path].parameters ? openApiSpec.paths[path].parameters : [],
+      servers: pathsAndWebhooks[pathOrHookName].servers || [],
+      parameters: pathsAndWebhooks[pathOrHookName].parameters || [],
     };
-
-    methods.forEach((methodName) => {
-      if (openApiSpec.paths[path][methodName]) {
-        const fullPath = openApiSpec.paths[path][methodName];
-
+    const isWebhook = pathsAndWebhooks[pathOrHookName]._type === 'webhook'; // eslint-disable-line no-underscore-dangle
+    supportedMethods.forEach((methodName) => {
+      if (pathsAndWebhooks[pathOrHookName][methodName]) {
+        const pathOrHookObj = openApiSpec.paths[pathOrHookName][methodName];
         // If path.methods are tagged, else generate it from path
-        const pathTags = fullPath.tags ? fullPath.tags : [];
+        const pathTags = pathOrHookObj.tags || [];
         if (pathTags.length === 0) {
-          let firstWordEndIndex = path.indexOf('/', 1);
-          if (firstWordEndIndex === -1) {
-            firstWordEndIndex = (path.length - 1);
+          if (generateMissingTags) {
+            const pathOrHookNameKey = pathOrHookName.replace(/^\/+|\/+$/g, '');
+            const firstWordEndIndex = pathOrHookNameKey.indexOf('/');
+            if (firstWordEndIndex === -1) {
+              pathTags.push(pathOrHookNameKey);
+            } else {
+              // firstWordEndIndex -= 1;
+              pathTags.push(pathOrHookNameKey.substr(0, firstWordEndIndex));
+            }
           } else {
-            firstWordEndIndex -= 1;
+            pathTags.push('General ⦂');
           }
-          pathTags.push(path.substr(1, firstWordEndIndex));
         }
 
         pathTags.forEach((tag) => {
@@ -311,86 +287,79 @@ function groupByTags(openApiSpec, sortTags = false, sortEndpointsBy) {
           if (!tagObj) {
             tagObj = {
               show: true,
+              elementId: `tag--${tag.replace(invalidCharsRegEx, '-')}`,
               name: tag,
+              description: specTagsItem?.description || '',
+              headers: specTagsItem?.description ? getHeadersFromMarkdown(specTagsItem.description) : [],
               paths: [],
-              description: specTagsItem ? specTagsItem.description : '',
               expanded: (specTagsItem ? specTagsItem['x-tag-expanded'] !== false : true),
             };
             tags.push(tagObj);
           }
 
-          // Generate Path summary and Description if it is missing for a method
-          let summary = (fullPath.summary || fullPath.description || `${methodName} ${path}`).trim().split('/\r?\n/')[0];
-          if (summary.length > 100) {
-            summary = summary.split('.')[0];
+          // Generate a short summary which is broken
+          let shortSummary = (pathOrHookObj.summary || pathOrHookObj.description || `${methodName.toUpperCase()} ${pathOrHookName}`).trim();
+          if (shortSummary.length > 100) {
+            shortSummary = shortSummary.split(/[.|!|?]\s|[\r?\n]/)[0]; // take the first line (period or carriage return)
           }
-          if (!fullPath.description) {
-            fullPath.description = ((fullPath.summary || '-').trim());
-          }
-
           // Merge Common Parameters with This methods parameters
           let finalParameters = [];
           if (commonParams) {
-            if (fullPath.parameters) {
+            if (pathOrHookObj.parameters) {
               finalParameters = commonParams.filter((commonParam) => {
-                if (!fullPath.parameters.some((param) => (commonParam.name === param.name && commonParam.in === param.in))) {
+                if (!pathOrHookObj.parameters.some((param) => (commonParam.name === param.name && commonParam.in === param.in))) {
                   return commonParam;
                 }
-              }).concat(fullPath.parameters);
+              }).concat(pathOrHookObj.parameters);
             } else {
               finalParameters = commonParams.slice(0);
             }
           } else {
-            finalParameters = fullPath.parameters ? fullPath.parameters.slice(0) : [];
+            finalParameters = pathOrHookObj.parameters ? pathOrHookObj.parameters.slice(0) : [];
           }
 
           // Update Responses
           tagObj.paths.push({
             show: true,
             expanded: false,
+            isWebhook,
             expandedAtLeastOnce: false,
-            summary,
+            summary: (pathOrHookObj.summary || ''),
+            description: (pathOrHookObj.description || ''),
+            shortSummary,
             method: methodName,
-            description: fullPath.description,
-            path,
-            operationId: fullPath.operationId,
-            servers: fullPath.servers ? commonPathProp.servers.concat(fullPath.servers) : commonPathProp.servers,
+            path: pathOrHookName,
+            operationId: pathOrHookObj.operationId,
+            elementId: `${methodName}-${pathOrHookName.replace(invalidCharsRegEx, '-')}`,
+            servers: pathOrHookObj.servers ? commonPathProp.servers.concat(pathOrHookObj.servers) : commonPathProp.servers,
             parameters: finalParameters,
-            requestBody: fullPath.requestBody,
-            responses: fullPath.responses,
-            callbacks: fullPath.callbacks,
-            deprecated: fullPath.deprecated,
-            security: fullPath.security,
-            commonSummary: commonPathProp.summary,
-            commonDescription: commonPathProp.description,
-            xCodeSamples: fullPath['x-codeSamples'] || fullPath['x-code-samples'] || '',
+            requestBody: pathOrHookObj.requestBody,
+            responses: pathOrHookObj.responses,
+            callbacks: pathOrHookObj.callbacks,
+            deprecated: pathOrHookObj.deprecated,
+            security: pathOrHookObj.security,
+            // commonSummary: commonPathProp.summary,
+            // commonDescription: commonPathProp.description,
+            xBadges: pathOrHookObj['x-badges'] || undefined,
+            xCodeSamples: pathOrHookObj['x-codeSamples'] || pathOrHookObj['x-code-samples'] || '',
           });
         });// End of tag path create
       }
     }); // End of Methods
   }
 
-  // sort paths by methods or path within each tags;
-  const tagsWithSortedPaths = tags.filter((v) => v.paths && v.paths.length > 0);
-  if (sortEndpointsBy === 'method') {
-    tagsWithSortedPaths.forEach((v) => {
-      if (v.paths) {
-        // v.paths.sort((a, b) => a.method.localeCompare(b.method));
-        v.paths.sort((a, b) => methods.indexOf(a.method).toString().localeCompare(methods.indexOf(b.method)));
-      }
-    });
-  } else if (sortEndpointsBy === 'summary') {
-    tagsWithSortedPaths.forEach((v) => {
-      if (v.paths) {
-        v.paths.sort((a, b) => (a.summary || a.description || a.path).localeCompare(b.summary || b.description || b.path));
-      }
-    });
-  } else {
-    tagsWithSortedPaths.forEach((v) => {
-      if (v.paths) {
-        v.paths.sort((a, b) => a.path.localeCompare(b.path));
-      }
-    });
-  }
+  const tagsWithSortedPaths = tags.filter((tag) => tag.paths && tag.paths.length > 0);
+  tagsWithSortedPaths.forEach((tag) => {
+    if (sortEndpointsBy === 'method') {
+      tag.paths.sort((a, b) => supportedMethods.indexOf(a.method).toString().localeCompare(supportedMethods.indexOf(b.method)));
+    } else if (sortEndpointsBy === 'summary') {
+      tag.paths.sort((a, b) => (a.shortSummary).localeCompare(b.shortSummary));
+    } else if (sortEndpointsBy === 'path') {
+      tag.paths.sort((a, b) => a.path.localeCompare(b.path));
+    } else if (sortEndpointsBy === 'none') {
+      // don't sort if sortEndpointsBy is 'none'
+    }
+    tag.firstPathId = tag.paths[0].elementId;
+  });
   return sortTags ? tagsWithSortedPaths.sort((a, b) => a.name.localeCompare(b.name)) : tagsWithSortedPaths;
 }

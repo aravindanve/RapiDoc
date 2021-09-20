@@ -1,16 +1,16 @@
 import { LitElement, html, css } from 'lit-element';
 import marked from 'marked';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { schemaInObjectNotation, generateExample } from '@/utils/schema-utils';
-import FontStyles from '@/styles/font-styles';
-import FlexStyles from '@/styles/flex-styles';
-import TableStyles from '@/styles/table-styles';
-import InputStyles from '@/styles/input-styles';
-import TabStyles from '@/styles/tab-styles';
-import BorderStyles from '@/styles/border-styles';
-import CustomStyles from '@/styles/custom-styles';
-import '@/components/schema-tree';
-import '@/components/schema-table';
+import { schemaInObjectNotation, generateExample } from '~/utils/schema-utils';
+import FontStyles from '~/styles/font-styles';
+import FlexStyles from '~/styles/flex-styles';
+import TableStyles from '~/styles/table-styles';
+import InputStyles from '~/styles/input-styles';
+import TabStyles from '~/styles/tab-styles';
+import BorderStyles from '~/styles/border-styles';
+import CustomStyles from '~/styles/custom-styles';
+import '~/components/schema-tree';
+import '~/components/schema-table';
 
 export default class ApiResponse extends LitElement {
   constructor() {
@@ -18,7 +18,7 @@ export default class ApiResponse extends LitElement {
     this.selectedStatus = '';
     this.headersForEachRespStatus = {};
     this.mimeResponsesForEachStatus = {};
-    this.activeSchemaTab = 'model';
+    this.activeSchemaTab = 'schema';
   }
 
   static get properties() {
@@ -33,6 +33,8 @@ export default class ApiResponse extends LitElement {
       activeSchemaTab: { type: String, attribute: 'active-schema-tab' },
       schemaExpandLevel: { type: Number, attribute: 'schema-expand-level' },
       schemaDescriptionExpanded: { type: String, attribute: 'schema-description-expanded' },
+      allowSchemaDescriptionExpandToggle: { type: String, attribute: 'allow-schema-description-expand-toggle' },
+      schemaHideWriteOnly: { type: String, attribute: 'schema-hide-write-only' },
     };
   }
 
@@ -60,6 +62,7 @@ export default class ApiResponse extends LitElement {
       .resp-descr{
         font-size:calc(var(--font-size-small) + 1px);
         color:var(--light-fg);
+        text-align:left;
       }
       .top-gap{margin-top:16px;}
       .example-panel{
@@ -111,17 +114,18 @@ export default class ApiResponse extends LitElement {
         const schemaTree = schemaInObjectNotation(mimeRespObj.schema, {});
         // Generate Example
         const respExamples = generateExample(
-          (mimeRespObj.examples || ''),
-          (mimeRespObj.example || ''),
+          mimeRespObj.examples,
+          mimeRespObj.example,
           mimeRespObj.schema,
           mimeResp,
           true,
+          false,
           mimeResp.includes('json') ? 'json' : 'text',
         );
         allMimeResp[mimeResp] = {
           description: this.responses[statusCode].description,
           examples: respExamples,
-          selectedExample: respExamples[0] ? respExamples[0].exampleId : '',
+          selectedExample: respExamples[0]?.exampleId || '',
           schemaTree,
         };
       }
@@ -150,6 +154,7 @@ export default class ApiResponse extends LitElement {
                     }
                   }}"
                   class='m-btn small ${this.selectedStatus === respStatus ? 'primary' : ''}'
+                  part="btn--resp ${this.selectedStatus === respStatus ? 'btn-fill--resp' : 'btn-outline--resp'} btn-response-status"
                   style='margin: 8px 4px 0 0'
                 > 
                   ${respStatus} 
@@ -174,7 +179,7 @@ export default class ApiResponse extends LitElement {
             : html`  
               <div class="tab-panel col">
                 <div class="tab-buttons row" @click="${(e) => { if (e.target.tagName.toLowerCase() === 'button') { this.activeSchemaTab = e.target.dataset.tab; } }}" >
-                  <button class="tab-btn ${this.activeSchemaTab === 'model' ? 'active' : ''}"   data-tab = 'model' >MODEL</button>
+                  <button class="tab-btn ${this.activeSchemaTab !== 'example' ? 'active' : ''}" data-tab = 'schema' >SCHEMA</button>
                   <button class="tab-btn ${this.activeSchemaTab === 'example' ? 'active' : ''}" data-tab = 'example'>EXAMPLE </button>
                   <div style="flex:1"></div>
                   ${Object.keys(this.mimeResponsesForEachStatus[status]).length === 1
@@ -199,19 +204,21 @@ export default class ApiResponse extends LitElement {
 
   responseHeaderListTemplate(respHeaders) {
     return html`
-      <div style="padding:16px 0 8px 0" class="resp-headers small-font-size upper bold-text">Response Headers:</div> 
-      <table style="padding-bottom:16px;" class='small-font-size mono-font'>
+      <div style="padding:16px 0 8px 0" class="resp-headers small-font-size bold-text">RESPONSE HEADERS</div> 
+      <table style="border-collapse: collapse; margin-bottom:16px; border:1px solid var(--border-color); border-radius: var(--border-radius)" class="small-font-size mono-font">
         ${respHeaders.map((v) => html`
           <tr>
-            <td style="vertical-align: top;"> ${v.name}</td> 
-            <td style="vertical-align: top; padding:0 5px;"> 
-              ${v.schema.type ? v.schema.type : ''}
+            <td style="padding:8px; vertical-align: baseline; min-width:120px; border-top: 1px solid var(--light-border-color); text-overflow: ellipsis;">
+              ${v.name || ''}
             </td> 
-            <td style="vertical-align: top;">
-              <div class="m-markdown regular-font" style="margin-top:-7px">${unsafeHTML(marked(v.description || ''))}</div>
+            <td style="padding:4px; vertical-align: baseline; padding:0 5px; border-top: 1px solid var(--light-border-color); text-overflow: ellipsis;">
+              ${v.schema.type || ''}
+            </td> 
+            <td style="padding:8px; vertical-align: baseline; border-top: 1px solid var(--light-border-color);text-overflow: ellipsis;">
+              <div class="m-markdown-small regular-font" >${unsafeHTML(marked(v.description || ''))}</div>
             </td>
-            <td style="vertical-align: top;">
-              ${v.schema.example ? v.schema.example : ''}
+            <td style="padding:8px; vertical-align: baseline; border-top: 1px solid var(--light-border-color); text-overflow: ellipsis;">
+              ${v.schema.example || ''}
             </td>
           </tr>
         `)}
@@ -245,12 +252,16 @@ export default class ApiResponse extends LitElement {
         ? html`
           ${mimeRespDetails.examples[0].exampleFormat === 'json'
             ? html`
+              ${mimeRespDetails.examples[0].exampleSummary && mimeRespDetails.examples[0].exampleSummary.length > 80 ? html`<div style="padding: 4px 0"> ${mimeRespDetails.examples[0].exampleSummary} </div>` : ''}
+              ${mimeRespDetails.examples[0].exampleDescription ? html`<div class="m-markdown-small" style="padding: 4px 0"> ${unsafeHTML(marked(mimeRespDetails.examples[0].exampleDescription || ''))} </div>` : ''}
               <json-tree 
                 render-style = '${this.renderStyle}'
                 .data="${mimeRespDetails.examples[0].exampleValue}"
                 class = 'example-panel ${this.renderStyle === 'read' ? 'border pad-8-16' : 'border-top pad-top-8'}'
               ></json-tree>`
             : html`
+              ${mimeRespDetails.examples[0].exampleSummary && mimeRespDetails.examples[0].exampleSummary.length > 80 ? html`<div style="padding: 4px 0"> ${mimeRespDetails.examples[0].exampleSummary} </div>` : ''}
+              ${mimeRespDetails.examples[0].exampleDescription ? html`<div class="m-markdown-small" style="padding: 4px 0"> ${unsafeHTML(marked(mimeRespDetails.examples[0].exampleDescription || ''))} </div>` : ''}
               <pre class = 'example-panel ${this.renderStyle === 'read' ? 'border pad-8-16' : 'border-top pad-top-8'}'>${mimeRespDetails.examples[0].exampleValue}</pre>
             `
           }`
@@ -291,19 +302,23 @@ export default class ApiResponse extends LitElement {
       ${this.schemaStyle === 'table'
         ? html`
           <schema-table
-            class = '${this.renderStyle === 'read' ? 'border pad-8-16' : 'border-top'}'
             render-style = '${this.renderStyle}'
             .data = '${mimeRespDetails.schemaTree}'
             schema-expand-level = "${this.schemaExpandLevel}"
             schema-description-expanded = "${this.schemaDescriptionExpanded}"
+            allow-schema-description-expand-toggle = "${this.allowSchemaDescriptionExpandToggle}",
+            schema-hide-read-only = false
+            schema-hide-write-only = ${this.schemaHideWriteOnly}
           > </schema-tree> `
         : html`
           <schema-tree
-            class = '${this.renderStyle === 'read' ? 'border pad-8-16' : 'border-top'}'
             render-style = '${this.renderStyle}'
             .data = '${mimeRespDetails.schemaTree}'
             schema-expand-level = "${this.schemaExpandLevel}"
             schema-description-expanded = "${this.schemaDescriptionExpanded}"
+            allow-schema-description-expand-toggle = "${this.allowSchemaDescriptionExpandToggle}",
+            schema-hide-read-only = false
+            schema-hide-write-only = ${this.schemaHideWriteOnly}
           > </schema-tree>`
       }`;
   }

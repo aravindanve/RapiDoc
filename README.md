@@ -14,7 +14,7 @@
 Custom Element for Open-API spec viewing
 
 ## Features
-- Supports Swagger 2.0 and OpenAPI 3.0 
+- Supports Swagger 2.0, OpenAPI 3.x.x 
 - Works with any framework or with no framework
 - Allows making API calls
 - Better Usability, 
@@ -51,14 +51,14 @@ Custom Element for Open-API spec viewing
 ## Build Process
 ```bash
 # Clone / Download the project then
-yarn install
+npm install
 
 # build will generate rapidoc-min.js, this is the only file you will need.
 # use it in the script tag of your html <script type="text/javascript" src="rapidoc-min.js"></script></body>
-yarn build 
+npm run build 
 
 # for developement use yarn serve (this will start an webserver at port 8080, then navigate to localhost:8080) 
-yarn serve
+npm run serve
 ```
 
 ## Contribution

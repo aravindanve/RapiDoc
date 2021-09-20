@@ -7,17 +7,16 @@ export default css`
   overflow: hidden;
   color:var(--nav-text-color);
   background-color: var(--nav-bg-color);
-  background-image: var(--nav-bg-image);
-  background-size: var(--nav-bg-image-size);
-  background-repeat: var(--nav-bg-image-repeat, 'no-repeat');
   background-blend-mode: multiply;
-  box-sizing:border-box;
   line-height: calc(var(--font-size-small) + 4px);
   display:none;
   position:relative;
   flex-direction:column;
   flex-wrap:nowrap;
   word-break:break-word;
+}
+::slotted(*){
+  padding:16px 30px 0 16px;
 }
 .nav-scroll {
   overflow-x: hidden;
@@ -40,7 +39,6 @@ export default css`
 .nav-bar-tag-icon {
   color: var(--nav-text-color);
   font-size: 20px; 
-  margin-right: -16px;
 }
 .nav-bar-tag-icon:hover {
   color:var(--nav-hover-text-color);
@@ -64,7 +62,7 @@ export default css`
   display: inline-block;
 }
 .nav-scroll::-webkit-scrollbar {
-  width: 10px;
+  width: var(--scroll-bar-width, 8px);
 }
 .nav-scroll::-webkit-scrollbar-track {
   background:transparent;
@@ -78,7 +76,7 @@ export default css`
   color: var(--nav-accent-color);
   border-left:4px solid transparent;
   font-weight:bold;
-  padding: 15px 30px 15px 10px;
+  padding: 15px 15px 15px 10px;
   text-transform: capitalize;
 }
 
@@ -114,10 +112,15 @@ export default css`
   justify-content: space-between;
   font-size: var(--font-size-small);
   color: var(--nav-text-color);
-  padding: 15px 15px 5px 5px;
-  filter:opacity(0.5);
+  padding: var(--nav-item-padding);
   font-weight:bold;
-  border-bottom: 1px solid var(--nav-text-color);
+}
+.nav-bar-section.operations {
+  cursor:pointer;
+}
+.nav-bar-section.operations:hover {
+  color:var(--nav-hover-text-color);
+  background-color:var(--nav-hover-bg-color);
 }
 
 .nav-bar-section:first-child {
@@ -129,7 +132,8 @@ export default css`
 .nav-bar-h2.active,
 .nav-bar-info.active,
 .nav-bar-tag.active,
-.nav-bar-path.active {
+.nav-bar-path.active,
+.nav-bar-section.operations.active {
   border-left:4px solid var(--nav-accent-color);
   color:var(--nav-hover-text-color);
 }

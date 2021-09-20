@@ -1,9 +1,9 @@
 import { LitElement, html, css } from 'lit-element';
-import { copyToClipboard } from '@/utils/common-utils';
-import FontStyles from '@/styles/font-styles';
-import BorderStyles from '@/styles/border-styles';
-import InputStyles from '@/styles/input-styles';
-import CustomStyles from '@/styles/custom-styles';
+import { copyToClipboard } from '~/utils/common-utils';
+import FontStyles from '~/styles/font-styles';
+import BorderStyles from '~/styles/border-styles';
+import InputStyles from '~/styles/input-styles';
+import CustomStyles from '~/styles/custom-styles';
 
 export default class JsonTree extends LitElement {
   static get properties() {
@@ -30,6 +30,8 @@ export default class JsonTree extends LitElement {
         word-break: break-all;
         flex:1;
         line-height: calc(var(--font-size-small) + 6px);
+        direction: ltr; 
+        text-align: left;
       }
 
       .open-bracket{
@@ -59,14 +61,12 @@ export default class JsonTree extends LitElement {
       .boolean{color:var(--purple);}
       .object{color:var(--fg)}
       .toolbar {
+        position: absolute;
+        top:5px;
+        right:6px;
         display:flex;
-        width:100%;
-        padding: 2px 0;
-        color:var(--primary-color);
-        font-family: var(--font-regular);
-        margin-bottom:4px;
+        padding:2px;
         align-items: center;
-        font-size: calc(var(--font-size-small) - 1px);
       }`,
       CustomStyles,
     ];
@@ -77,7 +77,7 @@ export default class JsonTree extends LitElement {
     return html`
       <div class = "json-tree" >
         <div class='toolbar'> 
-          <button  class="toolbar-btn" @click='${(e) => { copyToClipboard(JSON.stringify(this.data, null, 2), e); }}'> Copy </button>
+          <button class="toolbar-btn" part="btn btn-fill" @click='${(e) => { copyToClipboard(JSON.stringify(this.data, null, 2), e); }}'> Copy </button>
         </div>
         ${this.generateTree(this.data, true)}
       </div>  

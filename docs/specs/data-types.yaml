@@ -93,6 +93,10 @@ paths:
                   age:
                     description: Person Age
                     type: integer
+                    minimum: 1
+                    maximum: 100
+
+
   /person:
     post:
       tags:
@@ -161,8 +165,13 @@ paths:
         - name: interests
           in: query
           required: true
+          description: __Exploded Array__ will send separate querystring parameter for each items eg - `interests=computers&interests=movies`
           schema:
             type: array
+            example: 
+              - computers
+              - reading
+              - ['music', 'movies']
             minItems: 1
             maxItems: 3
             items:
@@ -179,7 +188,7 @@ paths:
               default: hiking   
         - name: tags
           in: query
-          description: Add tags to the person (not-exploded)
+          description: __Not Exploded Array__ will send a single querystring parameter with comma separated string eg - `tags=tall,dark,handsome`
           style: form
           explode: false
           schema:
@@ -209,8 +218,8 @@ components:
           type: string
           deprecated: true
     id:
-      type: integer
-      format: int64
+      type: string
+      format: uuid
       readOnly: true
     person:
       type: object

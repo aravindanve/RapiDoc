@@ -5,7 +5,6 @@ export default css`
 /* Button */
 .m-btn {
   border-radius: var(--border-radius);
-  box-sizing: border-box;
   font-weight: 600;
   display: inline-block;
   padding: 6px 16px;
@@ -47,8 +46,9 @@ export default css`
 }
 .toolbar-btn{
   cursor: pointer;
-  padding: 2px 0 4px;
+  padding: 4px;
   margin:0 2px;
+  font-size: var(--font-size-small);
   min-width: 50px;
   color: var(--primary-color-invert);
   border-radius: 2px;
@@ -63,6 +63,9 @@ input, textarea, select, button, pre {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
 }
+button {
+  font-family: var(--font-regular);
+}
 
 /* Form Inputs */
 pre,
@@ -76,7 +79,6 @@ input[type="password"] {
   font-size: var(--font-size-small);
   transition: border .2s;
   padding: 6px 5px;
-  box-sizing: border-box;
 }
 
 select {
@@ -175,9 +177,9 @@ input[type="checkbox"] {
   display: inline-block;
   background-color: var(--light-bg);
   border: 1px solid var(--light-bg);
-  border-radius: 10px;
+  border-radius: 9px;
   cursor: pointer;
-  height: 20px;
+  height: 18px;
   position: relative;
   transition: border .25s .15s, box-shadow .25s .3s, padding .25s;
   min-width: 36px;
