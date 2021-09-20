@@ -268,13 +268,9 @@ export default class SchemaTree extends LitElement {
           }
           <span class='${dataTypeCss}'> 
             ${dataType === 'array' // @aravindanve
-<<<<<<< HEAD
-              ? `[${type}${typeOrNull}]` : `${type}${typeOrNull}`}
+              ? html`[${type}${typeOrNull}]` : html`${type}${typeOrNull}`}
             ${readorWriteOnly}
-=======
-              ? html`[${itemParts[0]}${itemOrNull}]` : html`${itemParts[0]}${itemOrNull}`}
             <span>${itemParts[1]}</span>
->>>>>>> 70da1a0 (fix rendering of nullable primitives, update docs and dist)
           </span>
         </div>
         <div class='td key-descr'>
