@@ -157,14 +157,14 @@ export default class SchemaTree extends LitElement {
       const orNullClass = data['::nullable'] ? ' or-null' : ''; // @aravindanve
 
       if (dataType === 'array') {
-        if (level < this.schemaExpandLevel) {
+        if (schemaLevel < this.schemaExpandLevel) {
           openBracket = html`<span class="open-bracket array-of-object${orNullClass}" @click="${this.toggleObjectExpand}">[{</span>`; // @aravindanve
         } else {
           openBracket = html`<span class="open-bracket array-of-object${orNullClass}" @click="${this.toggleObjectExpand}">[{...}]${orNull}</span>`; // @aravindanve
         }
         closeBracket = html`}]${orNull}`; // @aravindanve
       } else {
-        if (level < this.schemaExpandLevel) {
+        if (schemaLevel < this.schemaExpandLevel) {
           openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{</span>`; // @aravindanve
         } else {
           openBracket = html`<span class="open-bracket object${orNullClass}" @click="${this.toggleObjectExpand}">{...}${orNull}</span>`; // @aravindanve
@@ -270,7 +270,6 @@ export default class SchemaTree extends LitElement {
             ${dataType === 'array' // @aravindanve
               ? html`[${type}${typeOrNull}]` : html`${type}${typeOrNull}`}
             ${readorWriteOnly}
-            <span>${itemParts[1]}</span>
           </span>
         </div>
         <div class='td key-descr'>

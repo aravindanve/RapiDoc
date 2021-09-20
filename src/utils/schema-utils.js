@@ -17,7 +17,7 @@ export function getTypeInfo(schema) {
       dataType = dataType.replace('string', schema.enum ? 'enum' : schema.format);
     }
     if (schema.nullable) {
-      dataType += '┃null';
+      // dataType += '┃null'; // removed by @aravindanve
     }
   } else if (Object.keys(schema).length === 0) {
     dataType = 'any';
